@@ -179,13 +179,32 @@ def main():
 
     if features_path.exists():
         feat = remap_event_id(pd.read_csv(features_path))
-        agg = feat.groupby("event_id").agg(
-            max_pga_g=("pga_g", "max"),
-            max_pgv_cms=("pgv_cms", "max"),
+
+        # max_pga_g/max_pgv_cms öncelikle "usable_for_engineering" olarak
+        # işaretlenmiş (güçlü hareket sensöründen, QC sorunu olmayan)
+        # kayıtlardan hesaplanır. Hiçbir olayda böyle bir kayıt yoksa,
+        # broadband/short-period kayıtlara düşülür ve bu ayrı bir bayrakla
+        # (pga_from_strong_motion) işaretlenir - bkz. issue #2.
+        if "usable_for_engineering" in feat.columns:
+            engineering_feat = feat[feat["usable_for_engineering"]]
+        else:
+            engineering_feat = feat[feat.get("instrument_type_used") == "strong_motion"]
+
+        agg_engineering = engineering_feat.groupby("event_id").agg(
+            max_pga_g=("pga_g", "max"), max_pgv_cms=("pgv_cms", "max"),
+        )
+        agg_any = feat.groupby("event_id").agg(
+            max_pga_g_any=("pga_g", "max"), max_pgv_cms_any=("pgv_cms", "max"),
             best_snr_db=("snr_db", "max"),
             has_phase_pick=("p_pick_time", lambda s: s.notna().any()),
         )
-        events = events.merge(agg, how="left", left_on="event_id", right_index=True)
+
+        events = events.merge(agg_engineering, how="left", left_on="event_id", right_index=True)
+        events = events.merge(agg_any, how="left", left_on="event_id", right_index=True)
+        events["pga_from_strong_motion"] = events["max_pga_g"].notna()
+        events["max_pga_g"] = events["max_pga_g"].fillna(events["max_pga_g_any"])
+        events["max_pgv_cms"] = events["max_pgv_cms"].fillna(events["max_pgv_cms_any"])
+        events = events.drop(columns=["max_pga_g_any", "max_pgv_cms_any"])
         events["has_phase_pick"] = events["has_phase_pick"].fillna(False)
 
     out_path = PROCESSED / "turkiye_deprem_veriseti_v3.parquet"

@@ -36,7 +36,7 @@ def plot_station_map():
     cbar.set_label("Büyüklük")
     ax.set_xlabel("Boylam")
     ax.set_ylabel("Enlem")
-    ax.set_title("Deprem Kataloğu ve İstasyon Ağı (83.598 olay, 277 istasyon)")
+    ax.set_title(f"Deprem Kataloğu ve İstasyon Ağı ({len(df)} olay, {len(stations)} istasyon)")
     ax.legend(loc="lower left")
     ax.set_aspect("equal")
     fig.tight_layout()
@@ -45,18 +45,23 @@ def plot_station_map():
 
 
 def plot_pga_vs_distance():
-    df = pd.read_parquet(PROCESSED / "turkiye_deprem_veriseti_v3.parquet")
-    has_pga = df[df["max_pga_g"].notna() & (df["max_pga_g"] > 0)]
+    # event_station_table.csv, her satırda AYNI istasyona ait mesafe ve
+    # PGA değerini tutar (bkz. scripts/build_event_station_table.py).
+    # Önceki sürüm, olay bazlı `max_pga_g` (herhangi bir istasyondan) ile
+    # `nearest_strong_motion_distance_km`'i (başka bir istasyondan) eşleyip
+    # fiziksel olarak tutarsız noktalar üretiyordu.
+    table = pd.read_csv(PROCESSED / "event_station_table.csv")
+    has_pga = table[table["pga_g"].notna() & (table["pga_g"] > 0)]
 
     fig, ax = plt.subplots(figsize=(8, 5.5))
     sc = ax.scatter(
-        has_pga["nearest_strong_motion_distance_km"], has_pga["max_pga_g"],
+        has_pga["epicentral_distance_km"], has_pga["pga_g"],
         c=has_pga["magnitude"], cmap="viridis", s=18, alpha=0.75,
     )
     ax.set_yscale("log")
     ax.set_xlabel("Kaynak-istasyon mesafesi (km)")
     ax.set_ylabel("Tepe yer ivmesi, PGA (g)")
-    ax.set_title(f"Gerçek Ölçülmüş PGA - Mesafe İlişkisi ({len(has_pga)} kayıt)")
+    ax.set_title(f"Gerçek Ölçülmüş PGA - Mesafe İlişkisi ({len(has_pga)} olay-istasyon kaydı)")
     cbar = fig.colorbar(sc, ax=ax)
     cbar.set_label("Büyüklük")
     ax.grid(alpha=0.3, which="both")

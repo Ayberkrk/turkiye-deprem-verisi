@@ -3,7 +3,27 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
-## v3 (güncel)
+## v4 (güncel)
+
+GitHub issue takibiyle (6 madde) gelen iyileştirmeler:
+
+### Eklenenler
+
+- Deduplikasyon yöntemi geliştirildi: sabit 30sn/100km eşiği yerine büyüklüğe göre ölçeklenen mesafe eşiği (50-150km) ve büyüklük farkı (<=1.5) koşulu eklendi; aynı kaynaktan gelen iki farklı olay artık asla aynı kümeye birleştirilmiyor. Her küme için `dedup_confidence`, `cluster_size`, `cluster_max_time_diff_sec`, `cluster_max_distance_km`, `cluster_max_magnitude_diff` sütunları eklendi.
+- `fetch_waveforms_bulk.py` artık genişletilmiş/deduplike katalog üzerinden çalışıyor (önceden sadece USGS kataloğu kullanılıyordu); M>=4.5 filtresi ham büyüklük yerine ölçek-homojen `mw_estimate` üzerinden uygulanıyor. Waveform arama kapsamı artık EMSC/ISC kaynaklı olayları da içeriyor.
+- `enrich_waveforms.py`'de güçlü hareket (strong-motion) ve broadband/short-period kayıtlar ayrıştırıldı: PGA/PGV öncelikle güçlü hareket kanalından hesaplanıyor, hangi kanal/sensör tipinin kullanıldığı (`instrument_type_used`, `channel_used`) her satırda saklanıyor.
+- Waveform kalite kontrol (QC) metrikleri eklendi: `num_gaps`, `gap_fraction`, `is_clipped`, `has_three_components`, `sampling_rate_hz`, `duration_sec`, `response_removed_ok`, `p_pick_confidence`, `s_pick_confidence`, `usable_for_engineering`, `usable_for_phase_picking`, `qc_flags`.
+- Yeni `scripts/build_event_station_table.py`: her deprem-istasyon çiftini ayrı bir satırda tutan `event_station_table.csv` üretiliyor; böylece PGA-mesafe gibi analizler aynı istasyondan gelen değerleri karşılaştırıyor. README'deki PGA-mesafe grafiği bu tablodan yeniden üretildi.
+- `validate_dataset.py` genişletildi: event-station mesafesinin koordinatlardan yeniden hesaplanıp doğrulanması, aşırı PGA/PGV outlier kontrolü, P/S faz sıralaması kontrolü, dedup küme kalitesi kontrolü ve makine tarafından okunabilir `validation_report.json`/`validation_report.md` çıktısı eklendi.
+- `build_dataset.py`: olay bazlı `max_pga_g`/`max_pgv_cms` artık öncelikle güçlü hareket kayıtlarından hesaplanıyor (`pga_from_strong_motion` bayrağıyla işaretli).
+- Sonuç: 84.100 benzersiz deprem, 2.960 gerçek dalga formu dosyası (1.068 benzersiz olay için, önceki sürümde 1.005'ti).
+
+### Düzeltilen hatalar
+
+- EMSC/ISC olay kimlikleri (`smi:ISC/evid=...`, `quakeml:eu.emsc/event/...`) ":" ve "/" karakterleri içerdiği için doğrudan dosya adında kullanılınca `FileNotFoundError` veriyordu (işletim sistemi "/" karakterini var olmayan bir alt dizin sanıyordu). `fetch_waveforms_bulk.py`'ye tersine çevrilebilir bir dosya adı kodlaması (`sanitize_event_id`/`desanitize_event_id`) eklendi.
+- `waveform_fetch_log.csv`'ye yeni bir sütun (`event_source`) eklenirken eski satırların şemasıyla çakışıp dosyanın bozulmasına (satır başına tutarsız sütun sayısı) yol açan bir şema uyumluluğu sorunu giderildi; `enrich_waveforms.py`'deki gibi bir şema kontrolü/otomatik göç eklendi.
+
+## v3
 
 ### Eklenenler
 

@@ -11,28 +11,31 @@
 
 set -e
 
-echo "== 1/8: USGS kataloğu =="
+echo "== 1/9: USGS kataloğu =="
 python scripts/download_usgs.py
 
-echo "== 2/8: EMSC/ISC ile genişletme ve deduplikasyon =="
+echo "== 2/9: EMSC/ISC ile genişletme ve deduplikasyon =="
 python scripts/expand_catalog.py
 
-echo "== 3/8: KOERI istasyon listesi =="
+echo "== 3/9: KOERI istasyon listesi =="
 python scripts/fetch_orfeus_eida.py
 
-echo "== 4/8: Zemin sınıfı (Vs30) =="
+echo "== 4/9: Zemin sınıfı (Vs30) =="
 python scripts/fetch_vs30.py
 
-echo "== 5/8: Dalga formu toplu indirme =="
+echo "== 5/9: Dalga formu toplu indirme =="
 python scripts/fetch_waveforms_bulk.py
 
-echo "== 6/8: Sinyal öznitelikleri (PGA/PGV/SNR/faz) =="
+echo "== 6/9: Sinyal öznitelikleri ve kalite kontrolü (PGA/PGV/SNR/faz/QC) =="
 python scripts/enrich_waveforms.py
 
-echo "== 7/8: Veri setini birleştir =="
+echo "== 7/9: Olay-istasyon tablosu (event-station) =="
+python scripts/build_event_station_table.py
+
+echo "== 8/9: Veri setini birleştir =="
 python scripts/build_dataset.py
 
-echo "== 8/8: Doğrulama =="
+echo "== 9/9: Doğrulama =="
 python scripts/validate_dataset.py
 
 echo

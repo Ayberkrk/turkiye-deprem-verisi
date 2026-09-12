@@ -21,11 +21,12 @@ kalmaması.
 
 | Kaynak | Lisans | Durum |
 |---|---|---|
-| USGS + EMSC + ISC (deduplike deprem kataloğu) | Public Domain / açık FDSN | Dahil, **83.598 benzersiz deprem** |
+| USGS + EMSC + ISC (deduplike deprem kataloğu) | Public Domain / açık FDSN | Dahil, **84.100 benzersiz deprem** |
 | KOERI / ORFEUS-EIDA (istasyon + dalga formu) | Açık FDSN | Dahil, 277 istasyon |
 | USGS Global Vs30 Mosaic (zemin sınıfı) | Public Domain | Dahil, 277/277 istasyon |
-| KOERI ham dalga formu (M≥4.5) | Açık FDSN | Dahil, 2.793 dosya, 1.005 olay için |
-| PGA/PGV/SNR/faz okuması | Kendi hesaplamamız | Dahil |
+| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog) | Açık FDSN | Dahil, 2.960 dosya, 1.068 olay için |
+| PGA/PGV/SNR/faz okuması + kalite kontrolü (QC) | Kendi hesaplamamız | Dahil |
+| Olay-istasyon tablosu (event-station) | Kendi hesaplamamız | Dahil, `event_station_table.csv` |
 
 Detaylar için `DATA_CARD.md` ve `LICENSE-DATA.md` dosyalarına bakın.
 
@@ -51,13 +52,14 @@ Ya da adım adım:
 
 ```bash
 python scripts/download_usgs.py       # USGS deprem kataloğu (Türkiye)
-python scripts/expand_catalog.py      # + EMSC/ISC ile genişletme ve deduplikasyon (83.598 olay)
+python scripts/expand_catalog.py      # + EMSC/ISC ile genişletme ve deduplikasyon (84.100 olay)
 python scripts/fetch_orfeus_eida.py   # KOERI istasyon listesi (+ --waveform ile örnek dalga formu)
 python scripts/fetch_vs30.py          # istasyonlara zemin sınıfı (Vs30) ekler
 python scripts/fetch_waveforms_bulk.py  # M>=4.5 depremler için gerçek dalga formu
-python scripts/enrich_waveforms.py    # PGA/PGV/SNR/faz okuması hesaplar
+python scripts/enrich_waveforms.py    # PGA/PGV/SNR/faz okuması ve kalite kontrolü (QC) hesaplar
+python scripts/build_event_station_table.py  # her deprem-istasyon çifti için ayrı satır
 python scripts/build_dataset.py       # hepsini birleştirip son veri setini üretir
-python scripts/validate_dataset.py    # yayın öncesi bütünlük kontrolü
+python scripts/validate_dataset.py    # yayın öncesi bütünlük ve fiziksel tutarlılık kontrolü
 ```
 
 Sonuç: `data/processed/turkiye_deprem_veriseti_v3.parquet` + `data/processed/waveforms/`
@@ -81,7 +83,10 @@ Bu, veri setinin gerçekten çalıştığını kanıtlayan çıktılar üretir:
 
 Yukarıdaki grafik, verinin fiziksel olarak tutarlı olduğunu gösteriyor:
 kaynağa yakın ve büyük depremlerde PGA yüksek, uzaklaştıkça ve
-küçüldükçe düşüyor (klasik azalım ilişkisi).
+küçüldükçe düşüyor (klasik azalım ilişkisi). Grafikteki her nokta,
+`event_station_table.csv` içindeki tek bir deprem-istasyon çiftine
+karşılık geliyor; yani PGA ve mesafe her zaman aynı istasyondan geliyor
+(bkz. `docs/schema.md`).
 
 ![Örnek dalga formu](notebooks/outputs/example_waveform.png)
 

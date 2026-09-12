@@ -14,11 +14,12 @@ noktası sunmak.
 
 | Kaynak | İçerik | Kapsam |
 |---|---|---|
-| USGS + EMSC + ISC (deduplike) | Deprem kataloğu (konum, büyüklük, derinlik, zaman) | **83.598 benzersiz deprem**, 1990-günümüz, Türkiye sınırları |
+| USGS + EMSC + ISC (deduplike) | Deprem kataloğu (konum, büyüklük, derinlik, zaman) | **84.100 benzersiz deprem**, 1990-günümüz, Türkiye sınırları |
 | KOERI / ORFEUS-EIDA | İstasyon envanteri + talebe bağlı ham dalga formu | KOERI ağının tamamı (277 istasyon) |
 | USGS Global Vs30 Mosaic | Zemin sınıfı (Vs30, NEHRP A-E) | 277/277 istasyon için |
-| KOERI ham dalga formu (M≥4.5) | 3 bileşenli miniSEED kayıtları | **2.793 dosya, 1.005 benzersiz olay için en az 1 gerçek kayıt** |
-| Sinyal öznitelikleri (PGA/PGV/SNR/faz) | Dalga formu başına hesaplanmış değerler | 2.793 dosyanın tamamı için, `waveform_features.csv` |
+| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog üzerinden) | Çok bileşenli miniSEED kayıtları | **2.960 dosya, 1.068 benzersiz olay için en az 1 gerçek kayıt** |
+| Sinyal öznitelikleri + kalite kontrolü (PGA/PGV/SNR/faz/QC) | Dalga formu başına hesaplanmış değerler | Tüm indirilen dosyalar için, `waveform_features.csv` |
+| Olay-istasyon tablosu | Her deprem-istasyon çifti için ayrı satır (mesafe+PGA tutarlı) | `event_station_table.csv` |
 
 ## Bilinen sınırlamalar
 
@@ -36,17 +37,59 @@ noktası sunmak.
   dijital güçlü hareket ağı esas olarak 1999 Kocaeli depreminden sonra
   genişledi.
 - Genişletilmiş katalog (USGS+EMSC+ISC), aynı depremi birden fazla kurum
-  bildirdiğinde 30 saniye zaman + 100km mesafe penceresiyle deduplike
-  ediliyor. Yoğun artçı deprem dizilerinde bu yöntemin ~%0.51 oranında
-  (kümelerin ~424/83.598'i) aynı kurumdan iki farklı olayı yanlışlıkla
-  birleştirmiş olma ihtimali var (zincirleme eşleşme etkisi). Bu düşük
-  ama sıfır olmayan bir hata payı.
+  bildirdiğinde zaman + büyüklüğe göre ölçeklenen mesafe + büyüklük farkı
+  koşullarına dayalı bir eşleştirmeyle deduplike ediliyor; aynı kaynaktan
+  gelen iki ayrı olay hiçbir zaman aynı kümeye birleştirilmiyor (bkz.
+  `scripts/expand_catalog.py`). Her küme için bir `dedup_confidence`
+  (0-1) skoru üretiliyor; düşük skorlu (yoğun artçı dizilerinde,
+  <0.5 güvenli) küme sayısı ~57/84.100 seviyesinde. Sıfır hata payı iddia
+  edilmiyor ama v1'e göre (o zaman ~424 kümede risk vardı) belirgin bir
+  iyileşme sağlandı.
 - mw_estimate sütunundaki dönüşüm formülü Marmara Bölgesi için türetilmiş
   (Şahin, Irmak, Livaoğlu, Yavuz, 2018, Uygulamalı Yerbilimleri Dergisi
   17(2):193-201); ulusal ölçekte kaba bir yaklaşıklıktır, kesin bir
   dönüşüm değildir.
 - S-dalgası varış zamanı (s_pick_time) basit bir sezgisel yöntemle
   tahmin ediliyor, yayın kalitesinde bir faz okuma değildir.
+- Dalga formu araması artık sadece USGS'in bildirdiği olaylarla sınırlı
+  değil; genişletilmiş (USGS+EMSC+ISC) katalog üzerinden, `mw_estimate`
+  ölçek-homojen büyüklük değerine göre M>=4.5 filtresi uygulanıyor
+  (bkz. `scripts/fetch_waveforms_bulk.py`).
+
+## Güçlü hareket (strong-motion) ve broadband ayrımı
+
+`waveform_features.csv` içindeki her satır, PGA/PGV hesabının hangi kanal
+ve sensör tipinden (`instrument_type_used`: `strong_motion` / `broadband`
+/ `short_period`) geldiğini açıkça belirtir. Bir istasyonda güçlü hareket
+(HN*, ivmeölçer) kanalı varsa PGA/PGV öncelikle ondan hesaplanır; yoksa
+broadband (HH*) veya başka bir kanala düşülür ve bu durum satırda ayrı bir
+sütunla işaretlenir. **Mühendislik amaçlı çalışmalar (PGA/PGV/tasarım
+spektrumu) için `usable_for_engineering == True` olan satırları kullanın**;
+bir broadband sismometreden hesaplanan PGA mühendislik tasarımı için
+güvenilir kabul edilmez.
+
+## Kalite kontrol (QC) bayrakları
+
+Her dalga formu kaydı için şu QC alanları hesaplanıyor: `num_gaps`,
+`gap_fraction` (MiniSEED boşluk oranı), `is_clipped` (dijitizör doygunluk
+şüphesi), `has_three_components`, `sampling_rate_hz`, `duration_sec`,
+`response_removed_ok` (cihaz tepkisi çıkarımı başarılı mı),
+`p_pick_confidence`/`s_pick_confidence` (STA/LTA tetikleme gücüne dayalı
+kaba güven skoru) ve özet olarak `usable_for_engineering` /
+`usable_for_phase_picking`. Kritik bir QC sorunu (clipping, boşluk, tepki
+çıkarımı hatası) varsa kayıt bu iki bayrakta da güvenilir sayılmaz;
+sorunun türü `qc_flags` sütununda listelenir. Amaç, "dosya okunabiliyor"
+ile "kayıt analiz için güvenilir" arasındaki farkı açık bırakmamak.
+
+## PGA-mesafe ilişkisi için doğru tablo
+
+Olay bazlı `turkiye_deprem_veriseti_v3.parquet` içindeki `max_pga_g`, bir
+olay için indirilen BİRDEN FAZLA istasyon arasındaki en yüksek değeri
+temsil eder ve `nearest_strong_motion_distance_km` başka bir istasyona ait
+olabilir. Mesafe ile PGA'yı aynı istasyondan karşılaştırmak isteyen
+çalışmalar (ör. azalım/attenuation analizi) `event_station_table.csv`
+dosyasını kullanmalı; bu tabloda her satır tek bir deprem-istasyon
+çiftini temsil eder.
 
 ## Önerilen kullanım alanları
 

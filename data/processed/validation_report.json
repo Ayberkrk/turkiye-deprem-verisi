@@ -1,0 +1,133 @@
+{
+  "generated_at": "2026-09-12T19:56:28.860803+00:00",
+  "total_events": 84100,
+  "total_waveform_files": 2960,
+  "checks_failed": 0,
+  "checks": [
+    {
+      "check": "event_id benzersiz",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Eksik değer yok (kritik sütunlar)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Büyüklük makul aralıkta (0-10)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Koordinatlar Türkiye kutusunda (lat 34-44, lon 24-46)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Derinlik negatif değil",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "İstasyon koordinatları eksik değil",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "has_waveform ile num_waveform_files tutarlı",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Dalga formu dosyaları listelendiği kadar var",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Tüm dalga formu dosyaları okunabilir",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "PGA değeri her satırda pozitif ya da sıfır",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Her dalga formu dosyası için en fazla 1 öznitelik satırı",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "mw_estimate sadece local/moment magnitude gruplarında dolu",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Vs30 makul fiziksel aralıkta (100-2000 m/s)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "NEHRP zemin sınıfı geçerli değerlerde (A-E)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Büyüklük tutarlılık sapması negatif değil",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "reported_by sütunu boş değil",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "event-station epicentral mesafesi koordinatlarla tutarlı (<=1km fark)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "hypocentral mesafe >= epicentral mesafe",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Aşırı büyük PGA değeri yok (>4g şüpheli)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Aşırı büyük PGV değeri yok (>500 cm/s şüpheli)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "usable_for_engineering yalnızca strong_motion kayıtlarda True",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "S faz okuması her zaman P'den sonra",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "dedup_confidence 0-1 aralığında",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Düşük güvenli (<0.5) çok kaynaklı küme sayısı makul seviyede (<%1)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Başarılı waveform_fetch_log kayıt sayısı, waveform dosya sayısıyla tutarlı",
+      "status": "OK",
+      "detail": ""
+    }
+  ]
+}

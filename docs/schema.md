@@ -17,12 +17,19 @@ genişletilmiş katalog. `scripts/expand_catalog.py` tarafından üretilir.
 | reported_by | string | Bu depremi hangi kurumların da bildirdiği (virgülle ayrık) |
 | magnitude_agreement_std | float | Birden fazla kurum bildirdiyse, bildirdikleri büyüklüklerin standart sapması. 0'a yakın değer kurumların hemfikir olduğunu gösterir. |
 | magnitude_report_count | int | Bu depremi kaç kurumun bildirdiği |
+| cluster_size | int | Bu depremi kaç ayrı (kaynak, kayıt) çiftinin bildirdiği |
+| cluster_max_time_diff_sec | float | Kümedeki kayıtlar arasındaki en büyük zaman farkı (saniye) |
+| cluster_max_distance_km | float | Kümedeki kayıtlar arasındaki en büyük konum farkı (km) |
+| cluster_max_magnitude_diff | float | Kümedeki kayıtlar arasındaki en büyük büyüklük farkı |
+| dedup_confidence | float (0-1) | Kümenin eşleşme güven skoru. Tek kaynaklı kümelerde 1.0. Zaman/mesafe/büyüklük farkı arttıkça düşer. |
 
-Deduplikasyon yöntemi: 30 saniye zaman + 100km mesafe penceresi içindeki
-kayıtlar aynı fiziksel deprem sayılır. Bilinen sınırlama: yoğun artçı
-deprem dizilerinde (örn. 6 Şubat 2023 sonrası) kümelerin ~%0.51'inde aynı
-kurumdan iki farklı olay yanlışlıkla aynı kümeye düşmüş olabilir
-(zincirleme eşleşme etkisi). Detaylar için `DATA_CARD.md`.
+Deduplikasyon yöntemi (v2): bir olay, zaman farkı <=30sn, büyüklüğe göre
+ölçeklenen bir mesafe eşiği (50-150km, büyük depremlerde daha geniş) ve
+büyüklük farkı <=1.5 olan bir kümeye katılabilir. AYNI KAYNAKTAN gelen bir
+olay zaten o kümedeyse katılamaz (bir kurum aynı depremi iki kez
+bildirmez; bu kural v1'deki en büyük yanlış-birleşme kaynağını ortadan
+kaldırıyor). Birden fazla aday küme uyuyorsa en iyi eşleşen seçilir.
+Detaylar için `DATA_CARD.md`.
 
 ## `data/processed/event_id_cluster_map.csv`
 
@@ -83,15 +90,24 @@ Genişletilmiş katalog, istasyon eşleştirmesi, zemin sınıfı ve dalga formu
 | nearest_strong_motion_station, nearest_strong_motion_distance_km | En yakın gerçek güçlü hareket istasyonu. Mühendislik analizi için bunu kullanın. |
 | nearest_sm_vs30_ms, nearest_sm_site_class | En yakın güçlü hareket istasyonunun zemin sınıfı |
 | has_waveform, num_waveform_files | Bu olay için gerçekten indirilmiş dalga formu var mı, kaç istasyondan |
-| max_pga_g, max_pgv_cms | Dalga formu varsa, en yüksek PGA (g) ve PGV (cm/s) |
+| max_pga_g, max_pgv_cms | Dalga formu varsa, en yüksek PGA (g) ve PGV (cm/s). Öncelikle güçlü hareket (strong-motion) kayıtlarından hesaplanır; hiç yoksa broadband/short-period'a düşülür (bkz. pga_from_strong_motion). |
+| pga_from_strong_motion | Bu satırdaki max_pga_g/max_pgv_cms gerçekten bir güçlü hareket sensöründen mi geldi (True) yoksa broadband/short-period'dan mı düştü (False) |
 | best_snr_db | Dalga formu varsa, en iyi sinyal/gürültü oranı (dB) |
 | has_phase_pick | Otomatik P-dalgası okuması başarılı oldu mu |
 
+Not: bir olay için tek bir `max_pga_g` değeri, o olay için indirilen
+BİRDEN FAZLA istasyon arasındaki en yüksek değeri temsil eder ve
+`nearest_strong_motion_distance_km` başka bir istasyona ait olabilir. PGA
+ile mesafeyi aynı istasyondan karşılaştırmak için (ör. azalım grafiği)
+`event_station_table.csv` kullanılmalı.
+
 ## `data/processed/waveforms/{event_id}_{station}.mseed`
 
-M≥4.5 depremler için, en yakın (≤400km) KOERI istasyonlarından çekilmiş,
-3 bileşenli ham dalga formu. Olay anından 10 saniye önce başlayıp 200
-saniye sonrasına kadar kaydı içerir.
+M≥4.5 (mw_estimate bazlı) depremler için, en yakın (≤400km) KOERI
+istasyonlarından çekilmiş, çok bileşenli ham dalga formu. Olay anından 10
+saniye önce başlayıp 200 saniye sonrasına kadar kaydı içerir. Kaynak
+katalog: genişletilmiş/deduplike katalog (`turkiye_deprem_katalogu_genisletilmis.parquet`);
+sadece USGS'in bildirdiği olaylarla sınırlı değildir (bkz. `scripts/fetch_waveforms_bulk.py`).
 ObsPy ile okunur: `from obspy import read; st = read("dosya.mseed")`
 
 Hangi olay/istasyon çiftinin denendiği ve sonucu (`ok` / `no_data`) için
@@ -99,26 +115,61 @@ Hangi olay/istasyon çiftinin denendiği ve sonucu (`ok` / `no_data`) için
 
 ## `data/processed/waveform_features.csv`
 
-Her dalga formu dosyası için hesaplanan sinyal öznitelikleri
-(`scripts/enrich_waveforms.py`).
+Her dalga formu dosyası için hesaplanan sinyal özniteliği ve kalite
+kontrol (QC) alanları (`scripts/enrich_waveforms.py`).
 
 | Kolon | Açıklama |
 |---|---|
 | file | Dalga formu dosya yolu |
 | event_id, station | Olay ve istasyon kimliği |
-| pga_g | Tepe yer ivmesi (g), cihaz tepkisi çıkarılmış |
+| network, location | SEED ağ/lokasyon kodu |
+| channel_used, instrument_type_used | PGA/PGV hesabında hangi kanal ve sensör tipinin (`strong_motion`/`broadband`/`short_period`) kullanıldığı. Güçlü hareket kanalı varsa öncelikli, yoksa broadband'e düşülür. |
+| pga_g | Tepe yer ivmesi (g), cihaz tepkisi çıkarılmış, `channel_used`'dan |
 | pgv_cms | Tepe yer hızı (cm/s), cihaz tepkisi çıkarılmış |
 | snr_db | Sinyal/gürültü oranı (dB), P varışından önce/sonraki pencerelerin RMS oranı |
-| p_pick_time | Otomatik STA/LTA ile bulunan P-dalgası varış zamanı |
-| s_pick_time | Yatay bileşen enerjisinde P'den sonraki ilk büyük tetiklenme (kaba S-dalgası adayı, sezgisel yöntem, yayın kalitesinde değil) |
+| p_pick_time, s_pick_time | Otomatik faz okuması (STA/LTA). S sezgisel bir tahmindir, yayın kalitesinde değil. |
+| p_pick_confidence, s_pick_confidence | STA/LTA tetikleme gücüne dayalı kaba güven skoru (0-1) |
+| sampling_rate_hz, duration_sec | Kaydın örnekleme hızı ve süresi |
+| num_gaps, gap_fraction | MiniSEED içindeki boşluk (gap) sayısı ve kaydın ne kadarının boşluk olduğu |
+| is_clipped | Dijitizör doygunluğu (clipping) şüphesi |
+| has_three_components | Üç farklı bileşen (Z/N/E gibi) mevcut mu |
+| response_removed_ok | Cihaz tepkisi çıkarımı (instrument response removal) başarılı oldu mu |
+| usable_for_engineering | PGA güçlü hareket sensöründen geldi VE kritik bir QC sorunu yok |
+| usable_for_phase_picking | P faz okuması var VE Z bileşeni/boşluk sorunu yok |
+| qc_flags | Tespit edilen kalite sorunlarının virgülle ayrılmış listesi (ör. `clipping_şüphesi`, `has_gaps`, `eksik_bileşen`) |
+
+## `data/processed/event_station_table.csv`
+
+Her satırı TEK BİR (event_id, station) çiftini temsil eden, PGA-mesafe
+gibi ilişkileri fiziksel olarak tutarlı biçimde incelemek için üretilen
+tablo (`scripts/build_event_station_table.py`).
+
+| Kolon | Açıklama |
+|---|---|
+| event_id, station, network, location, channel_used, instrument_type_used | Kimlik ve sensör bilgisi |
+| event_latitude, event_longitude, depth_km | Olay konumu |
+| station_latitude, station_longitude | İstasyon konumu |
+| epicentral_distance_km | Yüzeydeki (episantr) mesafe |
+| hypocentral_distance_km | Odak noktasına (hiposantr) gerçek mesafe, derinlik dahil |
+| magnitude, mag_type | Olay büyüklüğü ve tipi |
+| pga_g, pgv_cms, snr_db | Bu istasyondaki sinyal öznitelikleri |
+| vs30_ms, nehrp_site_class, has_strong_motion | İstasyonun zemin/sensör bilgisi |
+| response_removed_ok, usable_for_engineering, usable_for_phase_picking, qc_flags | Kalite bayrakları |
 
 ## `data/processed/waveform_fetch_log.csv`
 
 | Kolon | Açıklama |
 |---|---|
-| event_id | Olay kimliği |
+| event_id | Olay kimliği (genişletilmiş katalogdaki temsilci kimlik) |
 | station | Denenen KOERI istasyon kodu |
 | distance_km | Olay-istasyon mesafesi |
-| magnitude | Olay büyüklüğü |
+| magnitude | Olay büyüklüğü (ham) |
+| event_source | Olayın hangi kurum tarafından bildirildiği (`reported_by`, ör. `emsc,isc`) |
 | status | `ok` (dosya kaydedildi) / `no_data` (istasyonda o an veri yok) / `error: ...` |
 | file | Başarılıysa dosya yolu |
+
+## `data/processed/validation_report.json`, `validation_report.md`
+
+`scripts/validate_dataset.py`'nin her çalıştırmada ürettiği kalite özeti:
+hangi kontrolün geçtiği/kaldığı ve detayı. Yayınlanan her sürümün kalite
+durumunu arşivlemek için kullanılır.

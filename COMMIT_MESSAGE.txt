@@ -1,0 +1,13 @@
+v4: 6 issue çözüldü (dedup, waveform kapsamı, strong-motion ayrımı, QC, event-station tablosu, genişletilmiş doğrulama)
+
+- Deduplikasyon yöntemi büyüklük-farkı ve aynı-kaynak koruması ile geliştirildi, her kümeye dedup_confidence eklendi
+- Dalga formu araması genişletilmiş (USGS+EMSC+ISC) katalog üzerinden çalışacak şekilde güncellendi
+- Güçlü hareket / broadband waveform işleme akışları ayrıştırıldı
+- Waveform kalite kontrol (QC) metrikleri eklendi
+- event_station_table.csv eklendi, PGA-mesafe grafiği bu tablodan yeniden üretildi
+- validate_dataset.py 24 kontrole genişletildi, validation_report üretiyor
+- EMSC/ISC olay kimliklerindeki özel karakterlerin dosya adını bozması ve waveform_fetch_log.csv şema uyumsuzluğu düzeltildi
+- CITATION.cff eklendi
+- Sonuç: 84.100 olay, 2.960 dalga formu dosyası (1.068 olay için)
+
+Closes #1, #2, #3, #4, #5, #6

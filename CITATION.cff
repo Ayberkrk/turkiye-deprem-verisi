@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: >-
+  Bu veri setini akademik veya profesyonel bir çalışmada kullanıyorsanız
+  lütfen aşağıdaki gibi atıf verin. Alt kaynaklar (USGS, EMSC, ISC, KOERI)
+  ve mw_estimate formülü için ayrıca LICENSE-DATA.md ve DATA_CARD.md
+  dosyalarındaki atıf gereksinimlerine bakın.
+type: dataset
+title: "Türkiye Deprem Verisi"
+abstract: >-
+  USGS, EMSC, ISC ve KOERI/ORFEUS-EIDA gibi açık kaynaklardan derlenip
+  deduplike edilmiş, makine öğrenmesi kullanımına hazır bir Türkiye deprem
+  kataloğu ve sismik dalga formu veri seti. Deprem büyüklüğü tahmini,
+  erken uyarı ve sismik risk modelleri geliştirmek isteyenler için
+  hazırlanmıştır.
+authors:
+  - family-names: Korkmaz
+    given-names: Ayberk
+repository-code: "https://github.com/Ayberkrk/turkiye-deprem-verisi"
+url: "https://github.com/Ayberkrk/turkiye-deprem-verisi"
+license: MIT
+keywords:
+  - earthquake
+  - seismology
+  - turkey
+  - dataset
+  - machine-learning
+  - open-data
+  - obspy
+  - geospatial
+date-released: "2026-09-12"
