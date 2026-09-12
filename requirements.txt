@@ -1,0 +1,8 @@
+# Türkiye Deprem Verisi projesi - hafif, RAM dostu bağımlılıklar
+# 8GB RAM'lik makinelerde bile sorunsuz çalışacak şekilde seçildi.
+requests>=2.31
+pandas>=2.0
+pyarrow>=14.0        # parquet okuma/yazma (pandas'tan daha az bellek kullanır)
+duckdb>=0.10         # disk-üzerinde SQL sorguları, büyük CSV/parquet'leri RAM'e yüklemeden filtrelemek için
+tqdm>=4.66           # ilerleme çubuğu
+obspy>=1.4           # FDSN/EIDA istasyon ve dalga formu erişimi (LGPL v3 - kütüphane olarak kullanımı serbest)

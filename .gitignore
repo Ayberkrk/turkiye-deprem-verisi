@@ -1,0 +1,23 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
+
+# Ham/büyük veri dosyaları repo'ya girmez, scriptlerle yeniden üretilir
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*.mseed
+data/processed/*.h5
+data/processed/*.hdf5
+
+# İstasyon tepki bilgisi önbelleği: bayt olarak küçük ama metin satırı
+# olarak devasa (StationXML), tamamen API'den yeniden üretilebilir
+data/processed/response_cache/
+
+# Çalıştırma logları, veri değil
+data/processed/*.log
+
+# Kişisel/kimlik bilgisi olabilecek dosyalar asla commit edilmez
+.env
+*credentials*
