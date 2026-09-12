@@ -21,3 +21,6 @@ data/processed/*.log
 # Kişisel/kimlik bilgisi olabilecek dosyalar asla commit edilmez
 .env
 *credentials*
+
+# git commit -F için kullanılan geçici commit mesajı dosyası, repoya girmemeli
+COMMIT_MESSAGE.txt
