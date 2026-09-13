@@ -11,32 +11,38 @@
 
 set -e
 
-echo "== 1/9: USGS kataloğu =="
+echo "== 1/11: USGS kataloğu =="
 python scripts/download_usgs.py
 
-echo "== 2/9: EMSC/ISC ile genişletme ve deduplikasyon =="
+echo "== 2/11: EMSC/ISC ile genişletme ve deduplikasyon =="
 python scripts/expand_catalog.py
 
-echo "== 3/9: KOERI istasyon listesi =="
+echo "== 3/11: KOERI istasyon listesi (+ kanal bazlı zaman aralıkları) =="
 python scripts/fetch_orfeus_eida.py
 
-echo "== 4/9: Zemin sınıfı (Vs30) =="
+echo "== 4/11: Zemin sınıfı (Vs30) =="
 python scripts/fetch_vs30.py
 
-echo "== 5/9: Dalga formu toplu indirme =="
+echo "== 5/11: Dalga formu toplu indirme =="
 python scripts/fetch_waveforms_bulk.py
 
-echo "== 6/9: Sinyal öznitelikleri ve kalite kontrolü (PGA/PGV/SNR/faz/QC) =="
+echo "== 6/11: Sinyal öznitelikleri, mühendislik metrikleri ve kalite kontrolü =="
 python scripts/enrich_waveforms.py
 
-echo "== 7/9: Olay-istasyon tablosu (event-station) =="
+echo "== 7/11: ISC uzman P/S pick'leri (opsiyonel, atlanabilir) =="
+python scripts/fetch_isc_picks.py
+
+echo "== 8/11: Olay-istasyon tablosu (event-station) =="
 python scripts/build_event_station_table.py
 
-echo "== 8/9: Veri setini birleştir =="
+echo "== 9/11: Veri setini birleştir =="
 python scripts/build_dataset.py
 
-echo "== 9/9: Doğrulama =="
+echo "== 10/11: Doğrulama =="
 python scripts/validate_dataset.py
 
+echo "== 11/11: ML benchmark bölmeleri =="
+python scripts/build_benchmarks.py
+
 echo
-echo "Tamamlandı. Sonuç: data/processed/turkiye_deprem_veriseti_v3.parquet"
+echo "Tamamlandı. Sonuç: data/processed/turkiye_deprem_veriseti_v3.parquet + benchmarks/"

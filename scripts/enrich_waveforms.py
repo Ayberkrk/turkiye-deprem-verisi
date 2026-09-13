@@ -17,6 +17,21 @@ v2 notları:
   / `usable_for_phase_picking` bayrağı. Amaç: dosyanın "okunabilir olması"
   ile "analiz için güvenilir olması" arasındaki farkı açık hale getirmek.
 
+v3 notları: deprem mühendisliği için doğrudan kullanılabilecek ek
+öznitelikler eklendi:
+- sa_g_0_1s / 0_2s / 0_5s / 1_0s / 2_0s: %5 sönümlü tek serbestlik
+  dereceli (SDOF) sistem için sözde-ivme tepki spektrumu (pseudo-spectral
+  acceleration), Newmark-beta (doğrusal ivme, beta=1/6, gamma=1/2)
+  yöntemiyle sayısal integrasyonla hesaplanıyor.
+- arias_intensity_ms, cav_ms: Arias şiddeti ve kümülatif mutlak hız,
+  ivme kaydının tamamı üzerinden.
+- duration_5_95_sec: Arias şiddetinin %5'inden %95'ine ulaşma süresi
+  (anlamlı sarsıntı süresi, significant duration).
+- fas_dominant_freq_hz, fas_mean_freq_hz: Fourier genlik spektrumunun
+  tepe frekansı ve genlik-ağırlıklı ortalama frekansı.
+Bu değerler yalnızca güçlü hareket/broadband ivme kaydı elde edilebildiği
+(response_removed_ok=True) durumlarda hesaplanıyor.
+
 Yöntem notları (değişmedi):
 - PGA/PGV, aletin ham sayım (count) çıktısından değil, cihaz tepkisi
   (instrument response) çıkarılmış gerçek fiziksel birimlerden hesaplanır.
@@ -65,7 +80,84 @@ EXPECTED_COLUMNS = [
     "sampling_rate_hz", "duration_sec", "num_gaps", "gap_fraction",
     "is_clipped", "has_three_components", "response_removed_ok",
     "usable_for_engineering", "usable_for_phase_picking", "qc_flags",
+    "sa_g_0_1s", "sa_g_0_2s", "sa_g_0_5s", "sa_g_1_0s", "sa_g_2_0s",
+    "arias_intensity_ms", "cav_ms", "duration_5_95_sec",
+    "fas_dominant_freq_hz", "fas_mean_freq_hz",
 ]
+
+SA_PERIODS_SEC = [0.1, 0.2, 0.5, 1.0, 2.0]
+SA_DAMPING_RATIO = 0.05
+
+
+def newmark_sdof_psa(accel: np.ndarray, dt: float, period_sec: float, damping: float = SA_DAMPING_RATIO) -> float:
+    """%5 sönümlü bir SDOF sistemin, verilen periyottaki sözde-ivme tepki
+    değerini (pseudo-spectral acceleration) Newmark-beta yöntemiyle
+    hesaplar. Ortalama ivme varyantı (beta=1/4, gamma=1/2) kullanılıyor;
+    bu varyant her dt/T oranında koşulsuz kararlıdır (istasyonlar arası
+    örnekleme hızı 20-100Hz arasında değiştiği için bu önemli). accel
+    birimi ne ise (burada m/s^2) dönüş değeri de o birimdedir;
+    PSA = wn^2 * max(|göreli yer değiştirme|). Referans: Chopra,
+    "Dynamics of Structures", Newmark's Method (doğrusal sistemler)."""
+    wn = 2 * np.pi / period_sec
+    k, m, c = wn ** 2, 1.0, 2 * damping * wn
+    beta, gamma = 0.25, 0.5
+
+    n = len(accel)
+    p = -m * accel  # etkin yük: taban ivmesinden kaynaklanan atalet kuvveti
+
+    u = np.zeros(n)
+    v = np.zeros(n)
+    a = np.zeros(n)
+    a[0] = p[0] / m  # u0=v0=0 varsayımıyla
+
+    k_hat = k + gamma * c / (beta * dt) + m / (beta * dt ** 2)
+    coef_v = m / (beta * dt) + gamma * c / beta
+    coef_a = m / (2 * beta) + dt * (gamma / (2 * beta) - 1) * c
+
+    for i in range(n - 1):
+        d_p = (p[i + 1] - p[i]) + coef_v * v[i] + coef_a * a[i]
+        du = d_p / k_hat
+        dv = gamma / (beta * dt) * du - gamma / beta * v[i] + dt * (1 - gamma / (2 * beta)) * a[i]
+        da = du / (beta * dt ** 2) - v[i] / (beta * dt) - a[i] / (2 * beta)
+        u[i + 1] = u[i] + du
+        v[i + 1] = v[i] + dv
+        a[i + 1] = a[i] + da
+
+    return wn ** 2 * float(np.max(np.abs(u)))
+
+
+def arias_and_cav(accel_ms2: np.ndarray, dt: float):
+    """Arias şiddeti (m/s), kümülatif mutlak hız (CAV, m/s) ve %5-%95
+    anlamlı sarsıntı süresini (saniye) tek geçişte hesaplar."""
+    g = 9.81
+    cumulative_energy = np.cumsum(accel_ms2 ** 2) * dt
+    arias = (np.pi / (2 * g)) * cumulative_energy[-1]
+    cav = float(np.sum(np.abs(accel_ms2)) * dt)
+
+    total = cumulative_energy[-1]
+    duration_5_95 = None
+    if total > 0:
+        frac = cumulative_energy / total
+        idx_5 = np.searchsorted(frac, 0.05)
+        idx_95 = np.searchsorted(frac, 0.95)
+        duration_5_95 = round((idx_95 - idx_5) * dt, 3)
+
+    return round(float(arias), 6), round(cav, 4), duration_5_95
+
+
+def fourier_spectrum_summary(accel_ms2: np.ndarray, dt: float):
+    """Fourier genlik spektrumunun tepe frekansı ve genlik-ağırlıklı
+    ortalama frekansı (Hz). Sinyal içeriğinin baskın olduğu frekans
+    aralığını özetlemek için; tam spektrum diskte tutulmuyor, sadece bu
+    iki özet değer saklanıyor (depolama alanından tasarruf için)."""
+    n = len(accel_ms2)
+    spectrum = np.abs(np.fft.rfft(accel_ms2 - np.mean(accel_ms2)))
+    freqs = np.fft.rfftfreq(n, d=dt)
+    if len(freqs) < 2 or spectrum.sum() == 0:
+        return None, None
+    dominant = float(freqs[np.argmax(spectrum)])
+    mean_freq = float(np.sum(freqs * spectrum) / np.sum(spectrum))
+    return round(dominant, 3), round(mean_freq, 3)
 
 
 def get_station_response(station: str):
@@ -191,6 +283,9 @@ def compute_features(mseed_path: Path):
         sampling_rate_hz=sampling_rate_hz, duration_sec=duration_sec,
         num_gaps=num_gaps, gap_fraction=gap_fraction, is_clipped=is_clipped,
         has_three_components=has_three_components, response_removed_ok=False,
+        sa_g_0_1s=None, sa_g_0_2s=None, sa_g_0_5s=None, sa_g_1_0s=None, sa_g_2_0s=None,
+        arias_intensity_ms=None, cav_ms=None, duration_5_95_sec=None,
+        fas_dominant_freq_hz=None, fas_mean_freq_hz=None,
     )
 
     response_removed_ok = False
@@ -201,6 +296,31 @@ def compute_features(mseed_path: Path):
             pga_ms2 = max(np.max(np.abs(tr.data)) for tr in st_acc)
             result["pga_g"] = round(pga_ms2 / 9.81, 5)
             response_removed_ok = True
+
+            # Mühendislik öznitelikleri: en büyük genliğe sahip bileşen
+            # (genelde PGA'yı veren bileşenle aynı) üzerinden hesaplanır.
+            try:
+                dominant_tr = max(st_acc, key=lambda tr: np.max(np.abs(tr.data)))
+                acc_data = dominant_tr.data.astype(float)
+                dt = 1.0 / dominant_tr.stats.sampling_rate
+                if len(acc_data) > 20:
+                    sa_values = [newmark_sdof_psa(acc_data, dt, T) for T in SA_PERIODS_SEC]
+                    result["sa_g_0_1s"] = round(sa_values[0] / 9.81, 5)
+                    result["sa_g_0_2s"] = round(sa_values[1] / 9.81, 5)
+                    result["sa_g_0_5s"] = round(sa_values[2] / 9.81, 5)
+                    result["sa_g_1_0s"] = round(sa_values[3] / 9.81, 5)
+                    result["sa_g_2_0s"] = round(sa_values[4] / 9.81, 5)
+
+                    arias, cav, dur_5_95 = arias_and_cav(acc_data, dt)
+                    result["arias_intensity_ms"] = arias
+                    result["cav_ms"] = cav
+                    result["duration_5_95_sec"] = dur_5_95
+
+                    dom_freq, mean_freq = fourier_spectrum_summary(acc_data, dt)
+                    result["fas_dominant_freq_hz"] = dom_freq
+                    result["fas_mean_freq_hz"] = mean_freq
+            except Exception:
+                pass
         except Exception:
             pass
 

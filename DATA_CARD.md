@@ -17,9 +17,11 @@ noktası sunmak.
 | USGS + EMSC + ISC (deduplike) | Deprem kataloğu (konum, büyüklük, derinlik, zaman) | **84.100 benzersiz deprem**, 1990-günümüz, Türkiye sınırları |
 | KOERI / ORFEUS-EIDA | İstasyon envanteri + talebe bağlı ham dalga formu | KOERI ağının tamamı (277 istasyon) |
 | USGS Global Vs30 Mosaic | Zemin sınıfı (Vs30, NEHRP A-E) | 277/277 istasyon için |
-| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog üzerinden) | Çok bileşenli miniSEED kayıtları | **2.960 dosya, 1.068 benzersiz olay için en az 1 gerçek kayıt** |
-| Sinyal öznitelikleri + kalite kontrolü (PGA/PGV/SNR/faz/QC) | Dalga formu başına hesaplanmış değerler | Tüm indirilen dosyalar için, `waveform_features.csv` |
+| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog üzerinden) | Çok bileşenli miniSEED kayıtları | **5.413 dosya, 1.104 benzersiz olay için en az 1 gerçek kayıt** |
+| Sinyal öznitelikleri + mühendislik metrikleri + kalite kontrolü | PGA/PGV/SNR/faz + Sa(T)/Arias/CAV/D5-95 + QC | Tüm indirilen dosyalar için, `waveform_features.csv` |
+| ISC uzman (analyst-reviewed) P/S pick'leri | Gerçek dalga formu olan olaylar için, mevcut olduğu kadar | **185 olay, 384 pick**, `isc_analyst_picks.csv` |
 | Olay-istasyon tablosu | Her deprem-istasyon çifti için ayrı satır (mesafe+PGA tutarlı) | `event_station_table.csv` |
+| ML benchmark bölmeleri | 3 görev için olay bazlı train/val/test | `benchmarks/`, bkz. `docs/benchmarks.md` |
 
 ## Bilinen sınırlamalar
 
@@ -50,7 +52,16 @@ noktası sunmak.
   17(2):193-201); ulusal ölçekte kaba bir yaklaşıklıktır, kesin bir
   dönüşüm değildir.
 - S-dalgası varış zamanı (s_pick_time) basit bir sezgisel yöntemle
-  tahmin ediliyor, yayın kalitesinde bir faz okuma değildir.
+  tahmin ediliyor, yayın kalitesinde bir faz okuma değildir. `isc_analyst_picks.csv`
+  içinde, ISC Bulletin'den çekilmiş gerçek uzman pick'leri de bulunuyor
+  (mevcut olduğu olaylar için) - bunlar otomatik pick'lerle karşılaştırma/
+  doğrulama için kullanılabilir, ama tüm olayları kapsamıyor (ISC
+  Bulletin'in nihai hale gelmesi aylar sürebiliyor).
+- Sa(T)/Arias/CAV gibi mühendislik metrikleri, ivme kaydı elde
+  edilebilen (`response_removed_ok=True`) her satırda hesaplanıyor;
+  strong_motion olmayan (broadband/short_period) kayıtlardan
+  hesaplananlar da dahil - bunlar için `instrument_type_used` sütununu
+  kontrol edin.
 - Dalga formu araması artık sadece USGS'in bildirdiği olaylarla sınırlı
   değil; genişletilmiş (USGS+EMSC+ISC) katalog üzerinden, `mw_estimate`
   ölçek-homojen büyüklük değerine göre M>=4.5 filtresi uygulanıyor
@@ -96,8 +107,12 @@ dosyasını kullanmalı; bu tabloda her satır tek bir deprem-istasyon
 - Deprem büyüklüğü/derinlik tahmini modelleri
 - Erken uyarı sistemleri için faz okuma (phase picking) modelleri
 - Sismik tehlike haritalama araştırmaları
+- Ground-motion tahmin modelleri (büyüklük+mesafe+Vs30 -> PGA/PGV/Sa(T))
 - (İleri seviye) Gerçek kayıtları referans alarak sentetik ivme kaydı
   üreten üretici modellerin eğitimi
+
+Yukarıdaki görevlerin ilk üçü için hazır, olay bazlı train/val/test
+bölmeleri `benchmarks/` altında mevcut - bkz. `docs/benchmarks.md`.
 
 ## Önerilmeyen kullanım alanları
 

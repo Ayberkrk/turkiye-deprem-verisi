@@ -1,8 +1,8 @@
 # Veri Doğrulama Raporu
 
-Üretim zamanı: 2026-09-12T19:56:28.860803+00:00
+Üretim zamanı: 2026-09-13T08:37:58.765685+00:00
 
-Toplam olay: 84100, toplam dalga formu dosyası: 2960
+Toplam olay: 84100, toplam dalga formu dosyası: 5413
 
 | Kontrol | Durum | Detay |
 |---|---|---|

@@ -103,15 +103,37 @@ ile mesafeyi aynı istasyondan karşılaştırmak için (ör. azalım grafiği)
 
 ## `data/processed/waveforms/{event_id}_{station}.mseed`
 
-M≥4.5 (mw_estimate bazlı) depremler için, en yakın (≤400km) KOERI
-istasyonlarından çekilmiş, çok bileşenli ham dalga formu. Olay anından 10
-saniye önce başlayıp 200 saniye sonrasına kadar kaydı içerir. Kaynak
-katalog: genişletilmiş/deduplike katalog (`turkiye_deprem_katalogu_genisletilmis.parquet`);
-sadece USGS'in bildirdiği olaylarla sınırlı değildir (bkz. `scripts/fetch_waveforms_bulk.py`).
+M≥4.5 (mw_estimate bazlı) depremler için KOERI istasyonlarından çekilmiş,
+çok bileşenli ham dalga formu. Olay anından 10 saniye önce başlayıp 200
+saniye sonrasına kadar kaydı içerir. Kaynak katalog: genişletilmiş/deduplike
+katalog (`turkiye_deprem_katalogu_genisletilmis.parquet`); sadece USGS'in
+bildirdiği olaylarla sınırlı değildir (bkz. `scripts/fetch_waveforms_bulk.py`).
+
+İstasyon seçimi: en yakınından başlanarak, olay başına 4 başarılı kayda
+ulaşılana kadar (en fazla 12 aday, 400km'ye kadar) sırayla denenir - ilk
+4 istasyondan bazıları veri vermezse 5., 6., ... istasyona geçilir.
+İstasyonun olay anında ilgili kanalın (HH/HN/EH/BH) gerçekten aktif olup
+olmadığı `koeri_channels.csv`'den kontrol edilir (bir istasyonda BUGÜN bir
+sensör olması, 2005'te de olduğu anlamına gelmez).
+
 ObsPy ile okunur: `from obspy import read; st = read("dosya.mseed")`
 
 Hangi olay/istasyon çiftinin denendiği ve sonucu (`ok` / `no_data`) için
 `waveform_fetch_log.csv` dosyasına bakın.
+
+## `data/processed/koeri_channels.csv`
+
+`koeri_stations.csv`'nin kanal bazlı, zaman aralıklı hali
+(`scripts/fetch_orfeus_eida.py`). Bir istasyonun genel özet bilgisi
+zamanla değişebilir (yeni sensör eklenir, eskisi kaldırılır); bu tablo
+her kanalın gerçek başlangıç/bitiş tarihini tutar.
+
+| Kolon | Açıklama |
+|---|---|
+| network, station, location, channel | Kimlik bilgisi |
+| instrument_type | `strong_motion` / `broadband` / `short_period` |
+| latitude, longitude, sample_rate_hz | Kanal konumu ve örnekleme hızı |
+| start_date, end_date | Kanalın aktif olduğu tarih aralığı (end_date boşsa hâlâ aktif) |
 
 ## `data/processed/waveform_features.csv`
 
@@ -137,6 +159,11 @@ kontrol (QC) alanları (`scripts/enrich_waveforms.py`).
 | usable_for_engineering | PGA güçlü hareket sensöründen geldi VE kritik bir QC sorunu yok |
 | usable_for_phase_picking | P faz okuması var VE Z bileşeni/boşluk sorunu yok |
 | qc_flags | Tespit edilen kalite sorunlarının virgülle ayrılmış listesi (ör. `clipping_şüphesi`, `has_gaps`, `eksik_bileşen`) |
+| sa_g_0_1s ... sa_g_2_0s | %5 sönümlü SDOF sistem için sözde-ivme tepki spektrumu (g), periyotlar: 0.1/0.2/0.5/1.0/2.0 saniye (Newmark-beta, ortalama ivme yöntemi) |
+| arias_intensity_ms | Arias şiddeti (m/s) |
+| cav_ms | Kümülatif mutlak hız - CAV (m/s) |
+| duration_5_95_sec | Arias şiddetinin %5-%95 arasına ulaşma süresi (anlamlı sarsıntı süresi) |
+| fas_dominant_freq_hz, fas_mean_freq_hz | Fourier genlik spektrumunun tepe frekansı ve genlik-ağırlıklı ortalama frekansı |
 
 ## `data/processed/event_station_table.csv`
 
@@ -152,9 +179,40 @@ tablo (`scripts/build_event_station_table.py`).
 | epicentral_distance_km | Yüzeydeki (episantr) mesafe |
 | hypocentral_distance_km | Odak noktasına (hiposantr) gerçek mesafe, derinlik dahil |
 | magnitude, mag_type | Olay büyüklüğü ve tipi |
+| mw_estimate, time_utc | Ölçek-homojen büyüklük tahmini ve olay zamanı |
 | pga_g, pgv_cms, snr_db | Bu istasyondaki sinyal öznitelikleri |
+| sa_g_0_1s ... sa_g_2_0s, arias_intensity_ms, cav_ms, duration_5_95_sec | Mühendislik öznitelikleri, bkz. waveform_features.csv |
+| fas_dominant_freq_hz, fas_mean_freq_hz | Fourier spektrum özeti |
+| p_pick_time, s_pick_time, p_pick_confidence, s_pick_confidence | Faz okuması |
 | vs30_ms, nehrp_site_class, has_strong_motion | İstasyonun zemin/sensör bilgisi |
 | response_removed_ok, usable_for_engineering, usable_for_phase_picking, qc_flags | Kalite bayrakları |
+| file | Dalga formu dosya yolu |
+
+## `data/processed/isc_analyst_picks.csv`
+
+ISC Bulletin'den (`includearrivals=True` ile) çekilmiş, uzman tarafından
+doğrulanmış (analyst-reviewed) gerçek P/S pick'leri (`scripts/fetch_isc_picks.py`).
+Sadece gerçek dalga formu indirilmiş olaylar için çekilir. `enrich_waveforms.py`'nin
+otomatik STA/LTA pick'lerinin aksine, bunlar bir sismoloji uzmanı
+tarafından doğrulanmış gerçek etiketlerdir - phase-picking modelleri için
+gerçek bir ground-truth kaynağı.
+
+| Kolon | Açıklama |
+|---|---|
+| event_id, station | Kimlik bilgisi |
+| phase_type | `P` veya `S` |
+| phase_hint | ISC'nin ham faz etiketi (ör. `Pn`, `Pg`, `Sg`) |
+| pick_time | Uzman tarafından doğrulanmış varış zamanı |
+| source | Her zaman `isc_analyst` |
+
+Sınırlama: ISC Bulletin'in nihai (reviewed) hale gelmesi genelde birkaç
+ay sürer, bu yüzden çok yeni olaylarda pick bulunamayabilir; her olay
+ISC'ye bildirilmiş/işlenmiş olmayabilir.
+
+## `benchmarks/`
+
+Üç ML görevi (ground_motion, phase_picking, early_warning) için olay
+bazlı train/val/test bölmeleri. Detaylar için `docs/benchmarks.md`.
 
 ## `data/processed/waveform_fetch_log.csv`
 

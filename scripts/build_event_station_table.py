@@ -15,10 +15,14 @@ değerlerini AYNI satırdan alarak bu sorunu çözüyor.
 Kullanım:
     python scripts/build_event_station_table.py
 """
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).parent))
+from build_dataset import estimate_mw, magnitude_scale_group  # noqa: E402
 
 PROCESSED = Path("data/processed")
 
@@ -69,7 +73,12 @@ def main():
         features = features.copy()
         features["event_id"] = features["event_id"].map(usgs_map).fillna(features["event_id"])
 
-    events_small = events[["event_id", "latitude", "longitude", "depth_km", "magnitude", "mag_type"]].rename(
+    events_cols = ["event_id", "latitude", "longitude", "depth_km", "magnitude", "mag_type", "time_utc"]
+    if "mw_estimate" not in events.columns:
+        events["magnitude_scale_group"] = events["mag_type"].apply(magnitude_scale_group)
+        events["mw_estimate"] = events.apply(estimate_mw, axis=1)
+    events_cols.append("mw_estimate")
+    events_small = events[events_cols].rename(
         columns={"latitude": "event_latitude", "longitude": "event_longitude"}
     )
     stations_small = stations[
@@ -91,8 +100,14 @@ def main():
         "event_id", "station", "network", "location", "channel_used", "instrument_type_used",
         "event_latitude", "event_longitude", "depth_km", "station_latitude", "station_longitude",
         "epicentral_distance_km", "hypocentral_distance_km", "magnitude", "mag_type",
+        "mw_estimate", "time_utc",
         "pga_g", "pgv_cms", "snr_db", "vs30_ms", "nehrp_site_class", "has_strong_motion",
+        "sa_g_0_1s", "sa_g_0_2s", "sa_g_0_5s", "sa_g_1_0s", "sa_g_2_0s",
+        "arias_intensity_ms", "cav_ms", "duration_5_95_sec",
+        "fas_dominant_freq_hz", "fas_mean_freq_hz",
+        "p_pick_time", "s_pick_time", "p_pick_confidence", "s_pick_confidence",
         "response_removed_ok", "usable_for_engineering", "usable_for_phase_picking", "qc_flags",
+        "file",
     ]
     out_columns = [c for c in out_columns if c in table.columns]
     table = table[out_columns].sort_values(["event_id", "epicentral_distance_km"])

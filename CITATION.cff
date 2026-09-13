@@ -1,9 +1,12 @@
 cff-version: 1.2.0
 message: >-
   Bu veri setini akademik veya profesyonel bir çalışmada kullanıyorsanız
-  lütfen aşağıdaki gibi atıf verin. Alt kaynaklar (USGS, EMSC, ISC, KOERI)
-  ve mw_estimate formülü için ayrıca LICENSE-DATA.md ve DATA_CARD.md
-  dosyalarındaki atıf gereksinimlerine bakın.
+  lütfen aşağıdaki gibi atıf verin. Bu depodaki KOD MIT lisanslıdır
+  (LICENSE), ancak VERİ katmanları kaynağa göre değişen farklı lisanslara
+  tabidir (Public Domain, CC-BY-4.0, atıf-zorunlu açık FDSN servisleri
+  vb.) - bkz. LICENSE-DATA.md. Alt kaynaklar (USGS, EMSC, ISC, KOERI) ve
+  mw_estimate formülü için ayrıca DATA_CARD.md dosyasındaki atıf
+  gereksinimlerine bakın.
 type: dataset
 title: "Türkiye Deprem Verisi"
 abstract: >-
@@ -17,7 +20,11 @@ authors:
     given-names: Ayberk
 repository-code: "https://github.com/Ayberkrk/turkiye-deprem-verisi"
 url: "https://github.com/Ayberkrk/turkiye-deprem-verisi"
-license: MIT
+# "license" alanı kasıtlı olarak boş bırakıldı: CFF şeması tek bir SPDX
+# lisansı bekliyor, ama bu depoda kod (MIT) ve veri (kaynağa göre
+# Public Domain/CC-BY-4.0/atıf-zorunlu FDSN) farklı lisanslara tabi.
+# Tek bir "license: MIT" alanı verinin de MIT olduğu izlenimini verirdi.
+# Detaylar için LICENSE ve LICENSE-DATA.md dosyalarına bakın.
 keywords:
   - earthquake
   - seismology

@@ -58,13 +58,23 @@ def list_koeri_stations():
     KOERI (network kodu: KO) istasyon envanterini KANAL seviyesinde çeker
     (sadece istasyon seviyesi değil) ki her istasyonun gerçek güçlü hareket
     (strong-motion) sensörü olup olmadığını ayırt edebilelim.
+
+    Önemli: `koeri_stations.csv`'deki `start_date`/`has_strong_motion` gibi
+    alanlar istasyonun BUGÜNKÜ (envanterdeki en güncel) durumunu özetler.
+    Bir istasyonda bugün HN (güçlü hareket) sensörü olması, o istasyonda
+    2005'te de böyle bir sensör olduğu anlamına gelmez - kanallar zamanla
+    değişir (yeni sensör eklenir, eskisi kaldırılır). Bu yüzden ayrıca
+    kanal bazlı, başlangıç/bitiş tarihli bir tablo (`koeri_channels.csv`)
+    üretiyoruz; `fetch_waveforms_bulk.py` bir olay anında hangi sensörün
+    gerçekten aktif olduğunu bu tablodan kontrol ediyor.
     """
     inventory = client.get_stations(network="KO", level="channel")
-    rows = []
+    station_rows = []
+    channel_rows = []
     for net in inventory:
         for sta in net:
             channel_codes = {ch.code for ch in sta.channels}
-            rows.append(
+            station_rows.append(
                 dict(
                     network=net.code,
                     station=sta.code,
@@ -77,14 +87,36 @@ def list_koeri_stations():
                     has_strong_motion="N" in {c[1] for c in channel_codes if len(c) >= 2},
                 )
             )
+            for ch in sta.channels:
+                channel_rows.append(
+                    dict(
+                        network=net.code,
+                        station=sta.code,
+                        location=ch.location_code or "",
+                        channel=ch.code,
+                        instrument_type=_instrument_types({ch.code}),
+                        latitude=ch.latitude,
+                        longitude=ch.longitude,
+                        sample_rate_hz=ch.sample_rate,
+                        start_date=str(ch.start_date) if ch.start_date else None,
+                        end_date=str(ch.end_date) if ch.end_date else None,
+                    )
+                )
+
     import pandas as pd
 
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(station_rows)
     out_path = OUT_DIR / "koeri_stations.csv"
     df.to_csv(out_path, index=False)
     n_sm = df["has_strong_motion"].sum()
     print(f"{len(df)} KOERI istasyonu bulundu ({n_sm} tanesi güçlü hareket "
           f"sensörüne sahip) -> {out_path}")
+
+    channels_df = pd.DataFrame(channel_rows)
+    channels_path = OUT_DIR / "koeri_channels.csv"
+    channels_df.to_csv(channels_path, index=False)
+    print(f"{len(channels_df)} kanal kaydı (zaman aralıklı) -> {channels_path}")
+
     return df
 
 

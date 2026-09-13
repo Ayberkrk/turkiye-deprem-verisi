@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-12T19:56:28.860803+00:00",
+  "generated_at": "2026-09-13T08:37:58.765685+00:00",
   "total_events": 84100,
-  "total_waveform_files": 2960,
+  "total_waveform_files": 5413,
   "checks_failed": 0,
   "checks": [
     {

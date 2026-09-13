@@ -3,7 +3,27 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
-## v4 (güncel)
+## v5 (güncel)
+
+Dalga formu hacmini artırma, mühendislik özniteliklerini genişletme ve
+resmi ML benchmark'ları ekleme turu:
+
+### Eklenenler
+
+- `fetch_waveforms_bulk.py`: istasyon deneme algoritması "en yakın 4'ü dene" yerine "4 başarılı kayda ulaşana kadar en fazla 12 istasyonu sırayla dene" oldu. Aynı network bütçesiyle dosya sayısını ~2.960'tan **5.413**'e çıkardı.
+- `fetch_orfeus_eida.py`: kanal bazlı, zaman aralıklı yeni bir tablo (`koeri_channels.csv`) eklendi; bir istasyonda bugün bir sensör olması geçmişte de olduğu anlamına gelmiyordu, artık olay anındaki gerçek aktiflik kontrol ediliyor.
+- `enrich_waveforms.py`: mühendislik öznitelikleri eklendi - Sa(0.1/0.2/0.5/1.0/2.0s) response spectrum (Newmark-beta), Arias intensity, CAV, anlamlı sarsıntı süresi (D5-95), Fourier spektrum özeti.
+- Yeni `scripts/fetch_isc_picks.py`: gerçek dalga formu indirilen olaylar için ISC Bulletin'den uzman tarafından doğrulanmış (analyst-reviewed) P/S pick'leri çekiliyor (`isc_analyst_picks.csv`, 185 olay/384 pick) - otomatik STA/LTA pick'lerine gerçek bir karşılaştırma/doğrulama kaynağı sağlıyor.
+- Yeni `scripts/build_benchmarks.py`: üç ML görevi (ground_motion, phase_picking, early_warning) için olay bazlı train/val/test bölmeleri + istasyon bazlı ve zaman bazlı ileri seviye holdout'lar. Detaylar `docs/benchmarks.md`.
+- Sonuç: 5.413 dalga formu dosyası, 1.104 benzersiz olay için (önceki sürümde 2.960/1.068'di).
+
+### Düzeltilen hatalar
+
+- `fetch_waveforms_bulk.py`'de yeni bir kolon (`event_source`) eklenirken benzer bir CSV şema uyumsuzluğu daha yaşandı; `enrich_waveforms.py`'deki gibi bir migrasyon fonksiyonu eklendi.
+- Newmark-beta katsayılarında bir hata Sa değerlerinin sonsuza ıraksamasına yol açıyordu; doğru formülle yeniden yazıldı ve rezonans testiyle doğrulandı.
+- Boş bir pandas DataFrame'i boolean olmayan (bool dtype dışı) bir maskeyle filtrelemenin tüm sütunları düşürdüğü bir pandas tuhaflığı, istasyon aktiflik kontrolü öncesine boş-kontrolü eklenerek giderildi.
+
+## v4
 
 GitHub issue takibiyle (6 madde) gelen iyileştirmeler:
 

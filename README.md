@@ -24,9 +24,11 @@ kalmaması.
 | USGS + EMSC + ISC (deduplike deprem kataloğu) | Public Domain / açık FDSN | Dahil, **84.100 benzersiz deprem** |
 | KOERI / ORFEUS-EIDA (istasyon + dalga formu) | Açık FDSN | Dahil, 277 istasyon |
 | USGS Global Vs30 Mosaic (zemin sınıfı) | Public Domain | Dahil, 277/277 istasyon |
-| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog) | Açık FDSN | Dahil, 2.960 dosya, 1.068 olay için |
-| PGA/PGV/SNR/faz okuması + kalite kontrolü (QC) | Kendi hesaplamamız | Dahil |
+| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog) | Açık FDSN | Dahil, 5.413 dosya, 1.104 olay için |
+| PGA/PGV/SNR/faz okuması + mühendislik öznitelikleri (Sa/Arias/CAV) + QC | Kendi hesaplamamız | Dahil |
+| ISC uzman (analyst-reviewed) P/S pick'leri | ISC Bulletin | Dahil, 185 olay/384 pick, `isc_analyst_picks.csv` |
 | Olay-istasyon tablosu (event-station) | Kendi hesaplamamız | Dahil, `event_station_table.csv` |
+| ML benchmark bölmeleri (ground_motion/phase_picking/early_warning) | Kendi hesaplamamız | Dahil, `benchmarks/`, bkz. `docs/benchmarks.md` |
 
 Detaylar için `DATA_CARD.md` ve `LICENSE-DATA.md` dosyalarına bakın.
 
@@ -56,13 +58,15 @@ python scripts/expand_catalog.py      # + EMSC/ISC ile genişletme ve deduplikas
 python scripts/fetch_orfeus_eida.py   # KOERI istasyon listesi (+ --waveform ile örnek dalga formu)
 python scripts/fetch_vs30.py          # istasyonlara zemin sınıfı (Vs30) ekler
 python scripts/fetch_waveforms_bulk.py  # M>=4.5 depremler için gerçek dalga formu
-python scripts/enrich_waveforms.py    # PGA/PGV/SNR/faz okuması ve kalite kontrolü (QC) hesaplar
+python scripts/enrich_waveforms.py    # PGA/PGV/SNR/faz okuması, mühendislik öznitelikleri (Sa/Arias/CAV) ve QC hesaplar
+python scripts/fetch_isc_picks.py     # ISC Bulletin'den uzman (analyst-reviewed) P/S pick'leri (opsiyonel)
 python scripts/build_event_station_table.py  # her deprem-istasyon çifti için ayrı satır
 python scripts/build_dataset.py       # hepsini birleştirip son veri setini üretir
 python scripts/validate_dataset.py    # yayın öncesi bütünlük ve fiziksel tutarlılık kontrolü
+python scripts/build_benchmarks.py    # ML görevleri için train/val/test bölmeleri (bkz. docs/benchmarks.md)
 ```
 
-Sonuç: `data/processed/turkiye_deprem_veriseti_v3.parquet` + `data/processed/waveforms/`
+Sonuç: `data/processed/turkiye_deprem_veriseti_v3.parquet` + `data/processed/waveforms/` + `benchmarks/`
 
 STEAD bilinçli olarak dahil edilmedi (bkz. `CHANGELOG.md`'deki "Bilinçli
 olarak eklenmeyenler" bölümü). İsteyen `scripts/stead_kaggle_rehberi.md`
