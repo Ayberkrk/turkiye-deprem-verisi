@@ -15,6 +15,12 @@ data/processed/*.mseed
 data/processed/*.h5
 data/processed/*.hdf5
 
+# Gerçek dalga formu dosyaları artık burada değil, Hugging Face Hub'da
+# barındırılıyor (bkz. README "Veriyi indirme"): hf download ile buraya
+# indirilebilir, ama git tarafından takip edilmez (geçmişten de git
+# filter-repo ile çıkarıldı, bkz. CHANGELOG v5.3)
+data/processed/waveforms/
+
 # İstasyon tepki bilgisi önbelleği: bayt olarak küçük ama metin satırı
 # olarak devasa (StationXML), tamamen API'den yeniden üretilebilir
 data/processed/response_cache/

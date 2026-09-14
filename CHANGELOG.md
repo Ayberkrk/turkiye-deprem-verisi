@@ -3,6 +3,29 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.3
+
+- **Git geçmişi yeniden yazıldı** (`git filter-repo`): `data/processed/waveforms/`
+  (5.413 dosya, geçmişteki tüm sürümler dahil ~465MB, deponun toplam
+  boyutunun %96'sı) tüm commit geçmişinden çıkarıldı. Dalga formu
+  dosyaları artık yalnızca Hugging Face Hub'da barındırılıyor
+  (`huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi`) - hiçbir
+  veri kaybı yok, sadece git deposu artık bu veriyi taşımıyor. `.git`
+  boyutu ~490MB'dan ~13MB'a düştü.
+  **Önemli**: `git filter-repo`, HEAD'i yeniden yazılmış haline
+  resetlerken çalışma dizinindeki `data/processed/waveforms/` dosyalarını
+  da diskten siliyor (sadece git takibini bırakmıyor). Bu operasyonu
+  yapan herkes önce dosyaları başka bir yere kopyalamalı/yedeklemeli,
+  sonrasında geri kopyalayıp (artık untracked/ignored olarak) yerine
+  koymalı.
+  Bu geçmiş rewrite olduğu için eski bir klon üzerinde çalışan biri
+  `git fetch` sonrası `git reset --hard origin/main` yapmalı, ardından
+  `hf download Ayberkkr/turkiye-deprem-verisi --repo-type dataset
+  --local-dir .` ile dalga formu dosyalarını yeniden edinmeli.
+- `data/processed/*.parquet`, `*.csv` ve `benchmarks/` bilinçli olarak
+  geçmişte bırakıldı: toplamları (~14MB) önemsiz, PR'larda diff'lenebilir
+  olmaları değerli.
+
 ## v5.2
 
 - `tests/`: `scripts/` altındaki saf fonksiyonlar için birim testler
