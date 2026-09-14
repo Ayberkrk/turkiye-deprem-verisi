@@ -22,6 +22,12 @@ data/processed/response_cache/
 # Çalıştırma logları, veri değil
 data/processed/*.log
 
+# Build-time önbellek/checkpoint dosyaları - dokümante edilmiş bir veri
+# ürünü değil (waveform_fetch_log.csv'nin aksine), scriptlerle yeniden
+# üretilir
+data/processed/expanded_catalog_raw_cache.parquet
+data/processed/isc_picks_progress.csv
+
 # Kişisel/kimlik bilgisi olabilecek dosyalar asla commit edilmez
 .env
 *credentials*

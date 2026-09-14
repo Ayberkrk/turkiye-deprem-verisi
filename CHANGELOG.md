@@ -3,6 +3,26 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.2
+
+- `tests/`: `scripts/` altındaki saf fonksiyonlar için birim testler
+  eklendi (haversine/mesafe eşiği, split determinizmi, Newmark-beta ve
+  Arias/CAV'ın analitik çözümlerle doğrulanması, issue #7'nin kalıcı
+  regresyon testi).
+- `.github/workflows/tests.yml`: her push/PR'da testleri ve
+  `validate_dataset.py`'yi çalıştıran CI eklendi.
+- Yeni `notebooks/02_ground_motion_baseline.py`: `ground_motion`
+  split'leri üzerinde basit bir zayıflama modeli, split'lerin
+  öğrenilebilir bir sinyal taşıdığını kanıtlıyor (test R²≈0.66).
+- `CONTRIBUTING.md` eklendi.
+- İşlenmiş veri artık Hugging Face Hub'da da barındırılıyor
+  (`huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi`); README'ye
+  `hf download` ile doğrudan indirme yolu eklendi.
+- `data/processed/expanded_catalog_raw_cache.parquet` ve
+  `data/processed/isc_picks_progress.csv` depodan çıkarıldı - bunlar
+  build-time önbellek/checkpoint dosyaları, dokümante edilmiş bir veri
+  ürünü değil (`waveform_fetch_log.csv`'nin aksine, bkz. `docs/schema.md`).
+
 ## v5.1
 
 - `build_benchmarks.py`'deki `early_warning` görevinin "en az 10s kayıt
@@ -17,7 +37,7 @@ sürüm sürüm listeler.
   docstring'i doğru şekilde "ortalama ivme, beta=1/4" kullanıyor).
   Hesaplama doğruydu, sadece özet açıklama düzeltildi. Fixes #8
 
-## v5 (güncel)
+## v5
 
 Dalga formu hacmini artırma, mühendislik özniteliklerini genişletme ve
 resmi ML benchmark'ları ekleme turu:
