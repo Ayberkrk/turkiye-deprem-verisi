@@ -21,5 +21,11 @@ jobs:
       - name: Birim testler (scripts/ içindeki saf fonksiyonlar)
         run: python -m pytest tests/ -v
 
+      - name: Dalga formu dosyalarını Hugging Face'ten indir
+        run: |
+          pip install -U huggingface_hub
+          hf download Ayberkkr/turkiye-deprem-verisi data/processed/waveforms/ \
+            --repo-type dataset --local-dir .
+
       - name: Veri seti bütünlük/tutarlılık doğrulaması
         run: python scripts/validate_dataset.py
