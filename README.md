@@ -1,5 +1,10 @@
 # Türkiye Deprem Verisi
 
+[![tests](https://github.com/Ayberkrk/turkiye-deprem-verisi/actions/workflows/tests.yml/badge.svg)](https://github.com/Ayberkrk/turkiye-deprem-verisi/actions/workflows/tests.yml)
+[![License: MIT (kod)](https://img.shields.io/github/license/Ayberkrk/turkiye-deprem-verisi)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/Ayberkrk/turkiye-deprem-verisi)](https://github.com/Ayberkrk/turkiye-deprem-verisi/releases)
+[![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-yellow)](https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi)
+
 Türkiye'ye özel deprem yapay zekası/makine öğrenmesi modelleri geliştirmek
 isteyenler için, birden fazla açık kaynaktan derlenmiş, temiz ve
 kullanıma hazır bir veri seti.
