@@ -21,8 +21,10 @@ v3 notları: deprem mühendisliği için doğrudan kullanılabilecek ek
 öznitelikler eklendi:
 - sa_g_0_1s / 0_2s / 0_5s / 1_0s / 2_0s: %5 sönümlü tek serbestlik
   dereceli (SDOF) sistem için sözde-ivme tepki spektrumu (pseudo-spectral
-  acceleration), Newmark-beta (doğrusal ivme, beta=1/6, gamma=1/2)
-  yöntemiyle sayısal integrasyonla hesaplanıyor.
+  acceleration), Newmark-beta (ortalama ivme, beta=1/4, gamma=1/2)
+  yöntemiyle sayısal integrasyonla hesaplanıyor (bkz. `newmark_sdof_psa`
+  docstring'i: bu varyant koşulsuz kararlı olduğu için istasyonlar arası
+  değişen örnekleme hızlarında güvenli).
 - arias_intensity_ms, cav_ms: Arias şiddeti ve kümülatif mutlak hız,
   ivme kaydının tamamı üzerinden.
 - duration_5_95_sec: Arias şiddetinin %5'inden %95'ine ulaşma süresi

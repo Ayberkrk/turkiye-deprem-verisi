@@ -4,6 +4,9 @@ __pycache__/
 .DS_Store
 .ipynb_checkpoints/
 
+# Yerel çalışma notları, repoya girmez
+CLAUDE.md
+
 # Ham/büyük veri dosyaları repo'ya girmez, scriptlerle yeniden üretilir
 data/raw/*
 !data/raw/.gitkeep

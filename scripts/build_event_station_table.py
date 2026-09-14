@@ -103,7 +103,7 @@ def main():
         "mw_estimate", "time_utc",
         "pga_g", "pgv_cms", "snr_db", "vs30_ms", "nehrp_site_class", "has_strong_motion",
         "sa_g_0_1s", "sa_g_0_2s", "sa_g_0_5s", "sa_g_1_0s", "sa_g_2_0s",
-        "arias_intensity_ms", "cav_ms", "duration_5_95_sec",
+        "arias_intensity_ms", "cav_ms", "duration_sec", "duration_5_95_sec",
         "fas_dominant_freq_hz", "fas_mean_freq_hz",
         "p_pick_time", "s_pick_time", "p_pick_confidence", "s_pick_confidence",
         "response_removed_ok", "usable_for_engineering", "usable_for_phase_picking", "qc_flags",

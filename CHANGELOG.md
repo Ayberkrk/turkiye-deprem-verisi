@@ -3,6 +3,20 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.1
+
+- `build_benchmarks.py`'deki `early_warning` görevinin "en az 10s kayıt
+  süresi" filtresi ölü kodmuş: `event_station_table.csv`'de `duration_sec`
+  sütunu hiç yoktu (`build_event_station_table.py`'nin çıkış sütunları
+  arasında eksikti), bu yüzden koşul her zaman False'du ve filtre asla
+  çalışmadı. `duration_sec` artık tabloya taşınıyor ve filtre gerçekten
+  uygulanıyor. Fixes #7
+- `enrich_waveforms.py`'nin modül docstring'i Sa(T) hesaplamasında
+  kullanılan Newmark-beta varyantını yanlış tanımlıyordu ("doğrusal ivme,
+  beta=1/6" diyordu; kod ve `newmark_sdof_psa` fonksiyonunun kendi
+  docstring'i doğru şekilde "ortalama ivme, beta=1/4" kullanıyor).
+  Hesaplama doğruydu, sadece özet açıklama düzeltildi. Fixes #8
+
 ## v5 (güncel)
 
 Dalga formu hacmini artırma, mühendislik özniteliklerini genişletme ve

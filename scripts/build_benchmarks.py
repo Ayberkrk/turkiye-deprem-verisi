@@ -145,8 +145,8 @@ def build_early_warning_task(table: pd.DataFrame):
     df = table[table["mw_estimate"].notna() & table["p_pick_time"].notna()].copy()
     # Pencerenin veri içinde gerçekten mevcut olması için en az 10 saniyelik
     # kayıt süresi olmalı (en uzun pencere seçeneği).
-    if "duration_sec" in table.columns:
-        df = df.merge(table[["event_id", "station"]], on=["event_id", "station"], how="inner")
+    if "duration_sec" in df.columns:
+        df = df[df["duration_sec"] >= 10]
     cols = ["event_id", "station", "file", "p_pick_time", "magnitude", "mag_type", "mw_estimate"]
     cols = [c for c in cols if c in df.columns]
     df = df[cols]
