@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .DS_Store
 .ipynb_checkpoints/
+.pytest_cache/
 
 # Yerel çalışma notları, repoya girmez
 CLAUDE.md
@@ -27,3 +28,7 @@ data/processed/*.log
 
 # git commit -F için kullanılan geçici commit mesajı dosyası, repoya girmemeli
 COMMIT_MESSAGE.txt
+
+# HuggingFace dataset repo'suna yüklenen veri kartı, bu (kod) reposuna
+# değil, ayrı bir HF dataset reposuna aittir
+HF_DATASET_CARD.md

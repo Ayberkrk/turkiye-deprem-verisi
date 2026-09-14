@@ -9,6 +9,10 @@ kullanıma hazır bir veri seti.
 herkesin, veri toplama/temizleme işini sıfırdan yapmasına gerek
 kalmaması.
 
+İşlenmiş veri (parquet/CSV/waveform dosyaları) ayrıca Hugging Face
+Hub'da barındırılıyor, script'leri çalıştırmadan doğrudan indirebilirsiniz:
+**[huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi](https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi)**
+
 ## Neden bu depo?
 
 - STEAD gibi küresel veri setleri Türkiye'yi yeterince temsil etmiyor
@@ -42,9 +46,23 @@ source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Veriyi yeniden üretme
+## Veriyi indirme (hazır, önerilen)
 
-Tek komutla, sırayla:
+Script'leri çalıştırıp ~600MB veriyi ağdan yeniden üretmek yerine,
+hazır işlenmiş halini Hugging Face Hub'dan doğrudan indirin:
+
+```bash
+pip install huggingface_hub
+hf download Ayberkkr/turkiye-deprem-verisi --repo-type dataset --local-dir .
+```
+
+Bu, bu depodaki `data/processed/` ve `benchmarks/` klasörlerinin aynısını
+indirir; kod/script'ler için hâlâ bu GitHub reposu gerekli.
+
+## Veriyi yeniden üretme (kaynağından, opsiyonel)
+
+Veriyi indirmek yerine sıfırdan (kendi API çağrılarınızla) üretmek
+isterseniz, tek komutla sırayla:
 
 ```bash
 bash scripts/run_all.sh
@@ -79,6 +97,16 @@ python notebooks/01_baseline_example.py
 python notebooks/make_readme_charts.py
 ```
 
+`benchmarks/` klasöründeki resmi train/val/test bölmelerinin gerçekten
+öğrenilebilir bir sinyal taşıdığını kanıtlayan basit bir referans model
+(ek bağımlılık gerektirmez):
+
+```bash
+python notebooks/02_ground_motion_baseline.py
+```
+
+Detaylar ve güncel sonuç için `docs/benchmarks.md`.
+
 Bu, veri setinin gerçekten çalıştığını kanıtlayan çıktılar üretir:
 
 ![Büyüklük-zaman dağılımı](notebooks/outputs/magnitude_over_time.png)
@@ -105,4 +133,5 @@ Kod: MIT (`LICENSE`). Veri: kaynağa göre değişir, bkz. `LICENSE-DATA.md`.
 
 Yeni bir açık kaynak ekleyecekseniz lütfen önce `LICENSE-DATA.md`'ye
 lisans uyumluluğunu kontrol edin (özellikle share-alike/copyleft
-lisanslara dikkat).
+lisanslara dikkat). Kod değişikliği/test süreci için `CONTRIBUTING.md`'ye
+bakın.

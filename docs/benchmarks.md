@@ -73,6 +73,26 @@ p_time = UTCDateTime(p_pick_time)
 pencere = st.slice(p_time, p_time + 3)  # ilk 3 saniye
 ```
 
+## Referans (baseline) sonuç
+
+`notebooks/02_ground_motion_baseline.py`, `ground_motion` bölmeleri
+üzerinde ek bağımlılık gerektirmeyen basit bir zayıflama (attenuation)
+modeli eğitip test ediyor: `log10(PGA_g)`, büyüklük + `log10(hiposantral
+mesafe)` + `log10(Vs30)`'un doğrusal bir fonksiyonu olarak modelleniyor
+(kapalı-form en küçük kareler, `numpy.linalg.lstsq`). Amaç, split'lerin
+gerçekten anlamlı bir sinyal taşıdığını göstermek ve yeni gelenlere bir
+kıyas noktası vermek - yayın kalitesinde bir GMPE değildir.
+
+```
+python notebooks/02_ground_motion_baseline.py
+```
+
+Güncel sonuç (test bölmesi): RMSE(log10 g) ≈ 0.42 (yaklaşık 2.6x'lik bir
+faktör hatası), R² ≈ 0.66 - sadece train ortalamasını tahmin eden naif
+bir modelin RMSE'sinden (≈0.72) belirgin şekilde düşük. Bu, üç değişkenli
+basit bir doğrusal modelin bile PGA'nın büyük kısmını açıklayabildiğini,
+yani split'lerin öğrenilebilir bir ilişki taşıdığını gösteriyor.
+
 ## Sınırlamalar
 
 - Bölme oranları küçük görev boyutları için (özellikle `holdout_by_station`
