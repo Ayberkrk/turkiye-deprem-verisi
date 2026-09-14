@@ -5,6 +5,47 @@
 [![GitHub release](https://img.shields.io/github/v/release/Ayberkrk/turkiye-deprem-verisi)](https://github.com/Ayberkrk/turkiye-deprem-verisi/releases)
 [![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-yellow)](https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi)
 
+## English summary
+
+A Turkey-specific, machine-learning-ready earthquake dataset, built to
+fill a real gap: global catalogues like USGS under-report small/medium
+Turkish earthquakes, and global waveform datasets like STEAD lack
+engineering-relevant fields (site classification, dense strong-motion
+coverage) for Turkey specifically.
+
+- **84,100 deduplicated earthquake events** (1990-present), merged from
+  USGS + EMSC + ISC with a magnitude/distance/time-aware deduplication
+  method (so the same quake reported by multiple agencies isn't counted
+  twice) and a per-cluster confidence score.
+- **5,413 real multi-component acceleration/velocity waveform records**
+  (KOERI/ORFEUS-EIDA, M>=4.5, 1,104 unique events), with instrument
+  response removed and engineering features computed: PGA, PGV,
+  pseudo-spectral acceleration Sa(T), Arias intensity, CAV, significant
+  duration, plus automated P/S phase picks with confidence scores and
+  quality-control flags (clipping, gaps, missing components).
+- **277 stations** with Vs30 / NEHRP site classification (from the USGS
+  Global Vs30 Mosaic) - a field most comparable datasets omit, despite
+  its large effect on ground shaking.
+- **Official ML benchmark splits** (event-based train/val/test, plus
+  station- and time-based holdouts) for three tasks: ground-motion
+  prediction, phase picking, and early-warning magnitude estimation -
+  see `docs/benchmarks.md`. A baseline model
+  (`notebooks/02_ground_motion_baseline.py`) demonstrates the splits
+  carry a learnable signal (test R^2 ~= 0.66).
+- Data layers carry mixed licenses depending on source (public domain,
+  CC-BY-4.0, attribution-required open FDSN services) - see
+  `LICENSE-DATA.md`. Code is MIT.
+- Ready-to-use processed data (parquet/CSV/waveforms) is also mirrored on
+  **[Hugging Face](https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi)**,
+  downloadable in one command without running any scripts.
+
+The rest of this README, code comments, and prose docs are in Turkish
+(the dataset's primary audience is Turkish-speaking earthquake
+engineering/ML researchers). Column names in the data files themselves
+(`magnitude`, `depth_km`, `pga_g`, `vs30_ms`, ...) are English/technical
+identifiers and usable without reading Turkish; `docs/schema.md` lists
+every column with a Turkish-language description.
+
 Türkiye'ye özel deprem yapay zekası/makine öğrenmesi modelleri geliştirmek
 isteyenler için, birden fazla açık kaynaktan derlenmiş, temiz ve
 kullanıma hazır bir veri seti.
