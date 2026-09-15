@@ -52,11 +52,20 @@ noktası sunmak.
   17(2):193-201); ulusal ölçekte kaba bir yaklaşıklıktır, kesin bir
   dönüşüm değildir.
 - S-dalgası varış zamanı (s_pick_time) basit bir sezgisel yöntemle
-  tahmin ediliyor, yayın kalitesinde bir faz okuma değildir. `isc_analyst_picks.csv`
-  içinde, ISC Bulletin'den çekilmiş gerçek uzman pick'leri de bulunuyor
-  (mevcut olduğu olaylar için) - bunlar otomatik pick'lerle karşılaştırma/
-  doğrulama için kullanılabilir, ama tüm olayları kapsamıyor (ISC
-  Bulletin'in nihai hale gelmesi aylar sürebiliyor).
+  tahmin ediliyor, yayın kalitesinde bir faz okuma değildir.
+  `scripts/compare_picks_to_isc.py`, 384 uzman (ISC Bulletin,
+  analyst-reviewed) pick'i otomatik pick'lerle eşleştirip somut bir
+  hata payı çıkarıyor: **P-dalgası** için 210 eşleşmede ortalama mutlak
+  hata 9,3s (medyan 0,6s - yani çoğu pick isabetli, ama %40'ı 1
+  saniyeden fazla sapıyor); **S-dalgası** için 77 eşleşmede ortalama
+  hata 51,6s (medyan 9,5s, %90'ı 1 saniyeden fazla sapıyor) - S pick'i
+  P'ye göre belirgin şekilde daha az güvenilir. `p_pick_confidence`/
+  `s_pick_confidence` skoru gerçekten anlamlı: medyan-üstü güvenli
+  pick'lerin hatası, medyan-altına göre P'de ~7 kat, S'de ~2,5 kat daha
+  düşük - düşük güvenli pick'leri filtrelemek önerilir.
+  `isc_analyst_picks.csv` içinde bu karşılaştırmada kullanılan gerçek
+  uzman pick'leri (tüm olayları kapsamıyor, ISC Bulletin'in nihai hale
+  gelmesi aylar sürebiliyor) doğrudan da kullanılabilir.
 - Sa(T)/Arias/CAV gibi mühendislik metrikleri, ivme kaydı elde
   edilebilen (`response_removed_ok=True`) her satırda hesaplanıyor;
   strong_motion olmayan (broadband/short_period) kayıtlardan

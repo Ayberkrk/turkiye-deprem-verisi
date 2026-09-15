@@ -57,6 +57,15 @@ pick'lerle karşılaştırma/doğrulama için ayrıca kullanılabilir; tüm
 olayları kapsamaz (ISC Bulletin'in nihai hale gelmesi aylar sürebiliyor,
 her olay ISC'ye bildirilmiş olmayabilir).
 
+**Somut hata payı** (`scripts/compare_picks_to_isc.py` ile hesaplandı,
+384 uzman pick'inin otomatik pick'lerle eşleştirilmesiyle): P-dalgasında
+210 eşleşmede ortalama mutlak hata 9,3s (medyan 0,6s), S-dalgasında 77
+eşleşmede ortalama 51,6s (medyan 9,5s). `p_pick_confidence`/
+`s_pick_confidence` skoru gerçekten öngörücü - medyan-üstü güvenli
+pick'lerde hata belirgin şekilde daha düşük (P'de ~7x, S'de ~2,5x) - bu
+görevi kullanan modeller düşük güvenli pick'leri filtrelemeyi
+değerlendirmeli. Detaylar `DATA_CARD.md`'de.
+
 ## 3. early_warning
 
 **Girdi**: P varışından sonraki ilk 1/3/5/10 saniyelik pencere
@@ -92,6 +101,30 @@ faktör hatası), R² ≈ 0.66 - sadece train ortalamasını tahmin eden naif
 bir modelin RMSE'sinden (≈0.72) belirgin şekilde düşük. Bu, üç değişkenli
 basit bir doğrusal modelin bile PGA'nın büyük kısmını açıklayabildiğini,
 yani split'lerin öğrenilebilir bir ilişki taşıdığını gösteriyor.
+
+### Daha güçlü bir model ne kadar iyileştiriyor?
+
+`notebooks/03_ground_motion_randomforest.py`, aynı üç özniteliği
+kullanan bir RandomForest'ı doğrusal modelle kıyaslıyor (ek bağımlılık:
+scikit-learn, `requirements-dev.txt`):
+
+```
+pip install -r requirements-dev.txt
+python notebooks/03_ground_motion_randomforest.py
+```
+
+| split | model | RMSE(log10 g) | R² |
+|---|---|---|---|
+| test | doğrusal (OLS) | 0.419 | 0.657 |
+| test | RandomForest | 0.392 | 0.701 |
+
+RandomForest belirgin ama dramatik olmayan bir iyileşme sağlıyor (~6%
+daha düşük RMSE) - yani doğrusal model verideki ilişkinin çoğunu zaten
+yakalamış, ama tamamını değil; daha esnek modeller için hâlâ bir miktar
+pay var. Öznitelik önemine göre mesafe (`log_hypocentral_km`, ~0.73)
+büyüklükten (~0.17) ve Vs30'dan (~0.11) çok daha baskın - klasik
+azalım ilişkisiyle (mesafe arttıkça PGA hızla düşer) fiziksel olarak
+tutarlı.
 
 ## Sınırlamalar
 

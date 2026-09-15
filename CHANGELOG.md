@@ -3,6 +3,34 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.5
+
+- Yeni `scripts/compare_picks_to_isc.py`: otomatik (STA/LTA) P/S faz
+  okumaları, `isc_analyst_picks.csv`'deki 384 uzman pick'iyle eşleştirip
+  somut bir hata payı hesaplıyor (P: ortalama 9,3s/medyan 0,6s, S:
+  ortalama 51,6s/medyan 9,5s; ayrıca `p_pick_confidence`/
+  `s_pick_confidence` skorunun gerçekten öngörücü olduğu doğrulandı -
+  medyan-üstü güvenli pick'lerde hata P'de ~7x, S'de ~2,5x daha düşük).
+  DATA_CARD.md ve docs/benchmarks.md'deki S-pick uyarısı bu sayılarla
+  güncellendi.
+- Yeni `notebooks/03_ground_motion_randomforest.py`: `ground_motion`
+  görevinde doğrusal baseline'ın yanına bir RandomForest ekleyip
+  kıyaslıyor (test RMSE 0.419→0.392, R² 0.657→0.701) - doğrusal modelin
+  ilişkinin çoğunu yakaladığını ama tamamını yakalamadığını gösteriyor.
+  Ek bağımlılık (scikit-learn) sadece bu script'te, `02_ground_motion_baseline.py`
+  bağımlılıksız kalmaya devam ediyor.
+- Yeni `docs/leaderboard.md`: üç görev için model sonuçlarının
+  toplandığı, PR ile katkı yapılabilen bir skor tablosu.
+
+## v5.4
+
+- `.github/workflows/tests.yml`: v5.3'te `waveforms/` git geçmişinden
+  çıkarılınca CI'nin taze checkout'unda bu klasör boş kalıyor,
+  `validate_dataset.py` da 5.413 dosya beklerken 0 bulup başarısız
+  oluyordu (3 CI çalıştırması kırıktı). Doğrulama adımından önce
+  dalga formu dosyalarını Hugging Face Hub'dan indiren bir adım
+  eklendi. Fixes #9
+
 ## v5.3
 
 - **Git geçmişi yeniden yazıldı** (`git filter-repo`): `data/processed/waveforms/`

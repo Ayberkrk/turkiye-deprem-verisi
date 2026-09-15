@@ -151,7 +151,8 @@ python notebooks/make_readme_charts.py
 python notebooks/02_ground_motion_baseline.py
 ```
 
-Detaylar ve güncel sonuç için `docs/benchmarks.md`.
+Detaylar ve güncel sonuç için `docs/benchmarks.md`; farklı modellerin
+kıyaslandığı skor tablosu için `docs/leaderboard.md`.
 
 Bu, veri setinin gerçekten çalıştığını kanıtlayan çıktılar üretir:
 

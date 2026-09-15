@@ -2,3 +2,4 @@
 #   pip install -r requirements.txt -r requirements-dev.txt
 -r requirements.txt
 pytest>=8.0
+scikit-learn>=1.4   # notebooks/03_ground_motion_randomforest.py için

@@ -1,0 +1,28 @@
+{
+  "P": {
+    "phase": "P",
+    "n_matched": 210,
+    "mean_abs_error_sec": 9.282,
+    "median_abs_error_sec": 0.59,
+    "p90_abs_error_sec": 27.926,
+    "max_abs_error_sec": 164.77,
+    "fraction_over_1s": 0.405,
+    "mean_abs_error_high_confidence": 2.265,
+    "mean_abs_error_low_confidence": 16.3,
+    "n_high_confidence": 105,
+    "n_low_confidence": 105
+  },
+  "S": {
+    "phase": "S",
+    "n_matched": 77,
+    "mean_abs_error_sec": 51.639,
+    "median_abs_error_sec": 9.46,
+    "p90_abs_error_sec": 151.8,
+    "max_abs_error_sec": 210.63,
+    "fraction_over_1s": 0.896,
+    "mean_abs_error_high_confidence": 29.265,
+    "mean_abs_error_low_confidence": 74.601,
+    "n_high_confidence": 39,
+    "n_low_confidence": 38
+  }
+}

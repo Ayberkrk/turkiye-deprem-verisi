@@ -38,6 +38,12 @@ ISC-GEM örneği, `LICENSE-DATA.md`'de neden ham olarak dahil edilmediği
 açıklanıyor). Yeni kaynağı ekledikten sonra `DATA_CARD.md` ve
 `LICENSE-DATA.md`'yi güncelleyin.
 
+## Skor tablosuna (leaderboard) katkı
+
+`benchmarks/` üzerinde kendi modelini denedin mi? `docs/leaderboard.md`'ye
+bir PR ile satırını ekleyebilirsin - format ve tekrar-üretilebilirlik
+kuralları o dosyada.
+
 ## GitHub Actions
 
 Her push/PR'da `.github/workflows/tests.yml` çalışır: birim testler ve
