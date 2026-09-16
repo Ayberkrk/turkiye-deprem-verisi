@@ -21,7 +21,26 @@ jobs:
       - name: Birim testler (scripts/ içindeki saf fonksiyonlar)
         run: python -m pytest tests/ -v
 
+      - name: Hugging Face veri seti sürümünü al
+        id: hf_rev
+        run: |
+          SHA=$(curl -s "https://huggingface.co/api/datasets/Ayberkkr/turkiye-deprem-verisi" \
+            | python3 -c "import json,sys; print(json.load(sys.stdin)['sha'])")
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      # Dalga formu klasörü (~550MB) her push'ta HF'den yeniden indirilmesin
+      # diye önbelleğe alınıyor - anahtar HF'deki güncel commit sha'sına
+      # bağlı, veri seti güncellenmeden önbellek asla bayatlamaz, sadece
+      # HF'de gerçek bir değişiklik olduğunda yeniden indirilir.
+      - name: Dalga formu önbelleği
+        id: cache-waveforms
+        uses: actions/cache@v4
+        with:
+          path: data/processed/waveforms
+          key: waveforms-${{ steps.hf_rev.outputs.sha }}
+
       - name: Dalga formu dosyalarını Hugging Face'ten indir
+        if: steps.cache-waveforms.outputs.cache-hit != 'true'
         run: |
           pip install -U huggingface_hub
           hf download Ayberkkr/turkiye-deprem-verisi data/processed/waveforms/ \
