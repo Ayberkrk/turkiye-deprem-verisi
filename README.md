@@ -79,6 +79,7 @@ Hub'da barındırılıyor, script'leri çalıştırmadan doğrudan indirebilirsi
 | ISC uzman (analyst-reviewed) P/S pick'leri | ISC Bulletin | Dahil, 185 olay/384 pick, `isc_analyst_picks.csv` |
 | Olay-istasyon tablosu (event-station) | Kendi hesaplamamız | Dahil, `event_station_table.csv` |
 | ML benchmark bölmeleri (ground_motion/phase_picking/early_warning) | Kendi hesaplamamız | Dahil, `benchmarks/`, bkz. `docs/benchmarks.md` |
+| AFAD (katalog + TADAS ivme/dalga formu) | Belirsiz / kayıtlı kullanıcıya özel | **Dahil değil** - bkz. `DATA_CARD.md` |
 
 Detaylar için `DATA_CARD.md` ve `LICENSE-DATA.md` dosyalarına bakın.
 

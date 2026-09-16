@@ -23,6 +23,36 @@ noktası sunmak.
 | Olay-istasyon tablosu | Her deprem-istasyon çifti için ayrı satır (mesafe+PGA tutarlı) | `event_station_table.csv` |
 | ML benchmark bölmeleri | 3 görev için olay bazlı train/val/test | `benchmarks/`, bkz. `docs/benchmarks.md` |
 
+### Bilinçli olarak eklenmeyen bir kaynak: AFAD / TADAS
+
+Türkiye'nin resmi afet/deprem kurumu AFAD (Afet ve Acil Durum Yönetimi
+Başkanlığı) bilinçli olarak katalog/dalga formu kaynağı olarak
+**eklenmedi**:
+
+- **Katalog** (`deprem.afad.gov.tr`): dokümante edilmemiş bir JSON
+  web servisi (`apiv2/event/filter`) üzerinden erişilebiliyor, ama
+  resmi kullanım şartları/lisansı yayınlanmış değil - bu depoda zaten
+  kullanılan EMSC için de aynı belirsizlik var (bkz. `LICENSE-DATA.md`)
+  ve AFAD'ın durumu daha da az dokümante. Toplu/programatik kullanım
+  için resmi bir garanti olmadan bu depoya eklenmedi.
+- **Dalga formu / güçlü hareket verisi (TADAS - Türkiye İvme Veri
+  Tabanı ve Analiz Sistemi, `tadas.afad.gov.tr`)**: bu depodaki tüm
+  dalga formu indirme pipeline'ı (`scripts/fetch_waveforms_bulk.py`)
+  kimlik doğrulaması gerektirmeyen, açık FDSN/ORFEUS-EIDA uçlarına
+  dayanıyor. TADAS ise kayıtlı kullanıcı (araştırmacı/mühendis/
+  sismolog) girişi gerektiren bir portal; anonim/otomatik toplu indirme
+  için açık bir servis sunmuyor. Bu, KOERI/EIDA'nın "ticari kullanım
+  kısıtlı ama en azından açık erişimli" durumundan farklı, daha temel
+  bir engel: script'lerin dayandığı otomatik/tekrarlanabilir indirme
+  modeliyle uyuşmuyor.
+
+Sonuç: AFAD hem katalog hem dalga formu tarafında, bu depodaki diğer
+kaynaklardan farklı olarak ya lisans belirsizliği ya da kimlik
+doğrulama engeli taşıyor. Kayıtlı bir kullanıcı manuel olarak TADAS'tan
+veri indirip bu depoya katkıda bulunmak isterse (`CONTRIBUTING.md`),
+memnuniyetle değerlendirilir - ama otomatik pipeline bunu şu an
+yapamıyor.
+
 ## Bilinen sınırlamalar
 
 - USGS kataloğu, yerel ağların kendi kataloglarına göre küçük büyüklükteki

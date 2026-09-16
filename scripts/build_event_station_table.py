@@ -23,20 +23,32 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build_dataset import estimate_mw, magnitude_scale_group  # noqa: E402
+from geo import haversine_km  # noqa: E402
 
 PROCESSED = Path("data/processed")
 
 
-def haversine_km(lat1, lon1, lat2, lon2):
-    r = 6371.0
-    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
-    dlat, dlon = lat2 - lat1, lon2 - lon1
-    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
-    return 2 * r * np.arcsin(np.sqrt(a))
-
-
 def hypocentral_km(epicentral_km, depth_km):
     return np.sqrt(epicentral_km ** 2 + depth_km ** 2)
+
+
+def join_features_with_distances(features, events_small, stations_small):
+    """Her (event_id, station) satırı için mesafeyi PGA/PGV/SNR ile AYNI
+    satırdan hesaplar. Bkz. modül docstring'i: bu, issue #1'in kök
+    nedeniydi (mesafe en yakın istasyondan, PGA başka bir istasyondan
+    geliyordu).
+    """
+    table = features.merge(events_small, on="event_id", how="inner")
+    table = table.merge(stations_small, on="station", how="left")
+
+    table["epicentral_distance_km"] = haversine_km(
+        table["event_latitude"], table["event_longitude"],
+        table["station_latitude"], table["station_longitude"],
+    ).round(2)
+    table["hypocentral_distance_km"] = hypocentral_km(
+        table["epicentral_distance_km"], table["depth_km"].fillna(0)
+    ).round(2)
+    return table
 
 
 def main():
@@ -85,16 +97,7 @@ def main():
         ["station", "latitude", "longitude", "vs30_ms", "nehrp_site_class", "has_strong_motion"]
     ].rename(columns={"latitude": "station_latitude", "longitude": "station_longitude"})
 
-    table = features.merge(events_small, on="event_id", how="inner")
-    table = table.merge(stations_small, on="station", how="left")
-
-    table["epicentral_distance_km"] = haversine_km(
-        table["event_latitude"], table["event_longitude"],
-        table["station_latitude"], table["station_longitude"],
-    ).round(2)
-    table["hypocentral_distance_km"] = hypocentral_km(
-        table["epicentral_distance_km"], table["depth_km"].fillna(0)
-    ).round(2)
+    table = join_features_with_distances(features, events_small, stations_small)
 
     out_columns = [
         "event_id", "station", "network", "location", "channel_used", "instrument_type_used",

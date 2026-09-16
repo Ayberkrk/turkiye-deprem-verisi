@@ -15,6 +15,8 @@ aşağıdaki tabloyu kontrol edin.
 | `stead_turkiye_*.csv/hdf5` (varsa) | STEAD (Stanford) | **CC-BY-4.0** | Atıf zorunlu, orijinal STEAD makalesine referans verin |
 | ISC-GEM'den türetilen değerler (varsa, sadece doğrulama amaçlı) | ISC-GEM | CC-BY-SA 3.0 | **Share-Alike**: bu veriyi doğrudan içeren herhangi bir çıktı aynı lisansla paylaşılmalı. Bu yüzden ISC-GEM verisi bu depoya ham olarak dahil edilmez, yalnızca doğrulama/karşılaştırma için kullanılır. |
 | `mw_estimate` sütunu (formül) | Şahin ve diğerleri, 2018, Uygulamalı Yerbilimleri Dergisi | Akademik telif | Veri değil, bir formül; kullanan çalışmalar makaleye atıf vermeli. Tam kaynak `DATA_CARD.md`'nin Atıf bölümünde. |
+| *(bu depoya dahil DEĞİL)* AFAD deprem kataloğu (`deprem.afad.gov.tr`) | AFAD | Belirsiz | Dokümante edilmemiş bir JSON servisi (`apiv2/event/filter`) var ama yayınlanmış kullanım şartı/lisansı yok. Bkz. `DATA_CARD.md` - "Bilinçli olarak eklenmeyen bir kaynak". |
+| *(bu depoya dahil DEĞİL)* TADAS ivme/dalga formu verisi (`tadas.afad.gov.tr`) | AFAD | Kayıtlı kullanıcıya özel | Kimlik doğrulaması gerektiren bir portal; bu depodaki gibi anonim/otomatik toplu indirme için açık bir servis sunmuyor. Bkz. `DATA_CARD.md`. |
 
 ## Genel ilke
 

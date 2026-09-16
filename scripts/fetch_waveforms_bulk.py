@@ -52,11 +52,12 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from obspy import UTCDateTime
 from obspy.clients.fdsn import Client
 from obspy.clients.fdsn.header import FDSNException
+
+from geo import haversine_km
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build_dataset import estimate_mw, magnitude_scale_group  # noqa: E402
@@ -84,13 +85,6 @@ EXPECTED_LOG_COLUMNS = [
     "event_source", "status", "file", "fetched_at",
 ]
 
-
-def haversine_km(lat1, lon1, lat2, lon2):
-    r = 6371.0
-    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
-    dlat, dlon = lat2 - lat1, lon2 - lon1
-    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
-    return 2 * r * np.arcsin(np.sqrt(a))
 
 
 def sanitize_event_id(event_id: str) -> str:

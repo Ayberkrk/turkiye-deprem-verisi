@@ -3,6 +3,27 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.6
+
+- `scripts/build_dataset.py`'deki `nearest()` fonksiyonu ve
+  `scripts/build_event_station_table.py`'deki mesafe/PGA join mantığı
+  için regresyon testleri eklendi (`tests/test_nearest_station.py`,
+  `tests/test_event_station_join.py`) - bu kod yolu, issue #1'in
+  ("PGA-mesafe grafiğinde istasyon eşleşmesini düzelt") kök nedeniydi ve
+  o zamandan beri hiçbir hedefli testi yoktu. Join mantığı ayrıca ayrı,
+  test edilebilir bir `join_features_with_distances()` fonksiyonuna
+  çıkarıldı.
+- `haversine_km`, 5 script'te (`build_dataset.py`,
+  `build_event_station_table.py`, `expand_catalog.py`,
+  `fetch_waveforms_bulk.py`, `validate_dataset.py`) ayrı ayrı kopyalanmış
+  halindeydi; artık tek, test edilen `scripts/geo.py` modülünde
+  (`tests/test_geo.py`). Fixes #12
+- README/DATA_CARD/LICENSE-DATA'ya AFAD'ın neden bu depoya dahil
+  edilmediğini açıklayan bir not eklendi: katalog tarafında dokümante
+  edilmemiş/lisanssız bir API, TADAS (ivme/dalga formu) tarafında ise
+  kayıtlı kullanıcıya özel bir erişim modeli - ikisi de bu depodaki
+  anonim/otomatik indirme pipeline'ıyla uyuşmuyor. Fixes #11
+
 ## v5.5
 
 - Yeni `scripts/compare_picks_to_isc.py`: otomatik (STA/LTA) P/S faz

@@ -36,6 +36,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from geo import haversine_km
+
 PROCESSED = Path("data/processed")
 
 # Moment magnitude (Mw) ailesi: fiziksel olarak en tutarlı ölçek, büyük
@@ -75,15 +77,6 @@ def estimate_mw(row) -> float:
     if row["magnitude_scale_group"] == "local_magnitude":
         return round(ML_TO_MW_SLOPE * row["magnitude"] + ML_TO_MW_INTERCEPT, 2)
     return np.nan
-
-
-def haversine_km(lat1, lon1, lat2, lon2):
-    r = 6371.0
-    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
-    return 2 * r * np.arcsin(np.sqrt(a))
 
 
 def nearest(events, stations):
