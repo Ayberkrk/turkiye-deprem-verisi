@@ -1,0 +1,21 @@
+[project]
+name = "turkiye-deprem-verisi"
+version = "0.1.0"
+description = "Türkiye'ye özel deprem kataloğu ve dalga formu veri seti için yükleme yardımcıları"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+    "pandas>=2.0",
+    "pyarrow>=14.0",
+]
+
+[project.urls]
+Repository = "https://github.com/Ayberkrk/turkiye-deprem-verisi"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["turkiye_deprem*"]

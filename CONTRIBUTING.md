@@ -19,7 +19,16 @@ istiyorsanız aşağıdaki kontrol listesini takip edin.
    sayısal/fiziksel bir hesaplama düzeltiyorsanız (bkz.
    `tests/test_enrich_waveforms.py`'deki analitik doğrulama örnekleri).
 4. Veri üreten bir script'i değiştirdiyseniz, ilgili script'i çalıştırıp
-   çıktının değiştiğini/değişmediğini kontrol edin, ardından:
+   çıktının değiştiğini/değişmediğini kontrol edin, ardından hızlı bir
+   ön kontrol için (parquet/CSV'leri kontrol eder, saniyeler içinde
+   biter, dalga formu dosyalarını tek tek açmaz):
+
+   ```bash
+   python scripts/quick_check.py
+   ```
+
+   PR açmadan önce ise tam kontrolü çalıştırın (dalga formu dosyalarının
+   her birinin okunabilirliğini de doğrular, bu yüzden daha yavaştır):
 
    ```bash
    python scripts/validate_dataset.py

@@ -1,5 +1,7 @@
 # Veri Şeması
 
+*[English](schema.en.md)*
+
 ## `data/processed/turkiye_deprem_katalogu_genisletilmis.parquet`
 
 USGS, EMSC ve ISC'nin FDSN olay servislerinden çekilip deduplike edilmiş

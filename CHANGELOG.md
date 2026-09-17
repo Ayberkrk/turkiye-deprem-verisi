@@ -3,6 +3,36 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.7
+
+- Yeni `turkiye_deprem/` Python paketi + kök dizinde `pyproject.toml`:
+  `pip install -e .` sonrası `from turkiye_deprem import load_catalog,
+  load_event_station_table, load_waveform_features` ile veri
+  doğrudan yüklenebiliyor - artık `pd.read_parquet(Path("data/processed")
+  / "...")` kalıbını dokümandan kopyalamaya gerek yok. Dosya eksikse
+  Hugging Face indirme komutuna işaret eden açık bir hata veriyor.
+  `requirements.txt`/CI akışı değişmedi, bu tamamen ek bir kurulum yolu.
+  Testler: `tests/test_turkiye_deprem_io.py`.
+- `scripts/validate_dataset.py`'nin kontrolleri, `scripts/quick_check.py`'nin
+  de kullanabilmesi için saf fonksiyonlara ayrıldı (`structural_checks`,
+  `event_station_geometry_checks`, `ground_motion_plausibility_checks`
+  vb.). Yeni `tests/test_validate_dataset_checks.py`: her kontrol grubu
+  için hem temiz hem sentetik-bozuk-satır senaryosu. Davranış birebir
+  korundu (aynı 24 kontrol, aynı sonuç).
+- Yeni `scripts/quick_check.py`: `validate_dataset.py`'nin hızlı
+  versiyonu - sadece parquet/CSV'leri kontrol eder, 5.413 dalga formu
+  dosyasını `obspy.read()` ile açan yavaş kontrolü atlar (obspy'yi hiç
+  import etmez). CONTRIBUTING.md'ye ve CI'ye eklendi.
+- Yeni `docs/schema.en.md`: `docs/schema.md`'nin İngilizce çevirisi -
+  Hugging Face üzerinden gelen global kitle için. İki dosya karşılıklı
+  linkli; README'nin İngilizce özetinden de link veriliyor.
+- `CITATION.cff`'deki bayat `date-released` (2026-09-12) güncellendi.
+- Yeni `.zenodo.json`: GitHub-Zenodo webhook'u (zaten kurulu) bir
+  sonraki release'de bu metadata'yı okuyacak. `CITATION.cff`'e mevcut
+  Zenodo DOI'si (`10.5281/zenodo.22754706`, v5.3.1 kaydı) `identifiers`
+  alanı olarak eklendi; README'ye DOI rozeti, `DATA_CARD.md`'nin Atıf
+  bölümüne DOI linki eklendi.
+
 ## v5.6
 
 - `scripts/build_dataset.py`'deki `nearest()` fonksiyonu ve

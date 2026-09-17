@@ -166,7 +166,10 @@ Bkz. `LICENSE` (kod, MIT) ve `LICENSE-DATA.md` (veri, kaynağa göre değişir).
 ## Atıf
 
 Bu veri setini kullanırken lütfen hem bu depoya hem de orijinal kaynaklara
-(USGS, EMSC, ISC, KOERI) atıf verin. Detaylar `LICENSE-DATA.md` içinde.
+(USGS, EMSC, ISC, KOERI) atıf verin. Atıf bilgisi `CITATION.cff`
+dosyasında (GitHub'ın "Cite this repository" özelliğiyle uyumlu); DOI:
+[10.5281/zenodo.22754706](https://doi.org/10.5281/zenodo.22754706).
+Detaylar `LICENSE-DATA.md` içinde.
 
 `mw_estimate` sütununu kullanan çalışmalar ayrıca şu makaleye atıf
 vermelidir:

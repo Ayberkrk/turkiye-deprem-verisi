@@ -4,6 +4,7 @@
 [![License: MIT (kod)](https://img.shields.io/github/license/Ayberkrk/turkiye-deprem-verisi)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/Ayberkrk/turkiye-deprem-verisi)](https://github.com/Ayberkrk/turkiye-deprem-verisi/releases)
 [![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-yellow)](https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22754706.svg)](https://doi.org/10.5281/zenodo.22754706)
 
 ## English summary
 
@@ -43,8 +44,10 @@ The rest of this README, code comments, and prose docs are in Turkish
 (the dataset's primary audience is Turkish-speaking earthquake
 engineering/ML researchers). Column names in the data files themselves
 (`magnitude`, `depth_km`, `pga_g`, `vs30_ms`, ...) are English/technical
-identifiers and usable without reading Turkish; `docs/schema.md` lists
-every column with a Turkish-language description.
+identifiers and usable without reading Turkish; every column is listed
+with an English-language description in
+**[docs/schema.en.md](docs/schema.en.md)** (Turkish version:
+`docs/schema.md`).
 
 Türkiye'ye özel deprem yapay zekası/makine öğrenmesi modelleri geliştirmek
 isteyenler için, birden fazla açık kaynaktan derlenmiş, temiz ve
@@ -136,6 +139,22 @@ Sonuç: `data/processed/turkiye_deprem_veriseti_v3.parquet` + `data/processed/wa
 STEAD bilinçli olarak dahil edilmedi (bkz. `CHANGELOG.md`'deki "Bilinçli
 olarak eklenmeyenler" bölümü). İsteyen `scripts/stead_kaggle_rehberi.md`
 dosyasındaki adımları Kaggle'da takip edebilir.
+
+## Python paketi olarak kullanma
+
+Veriyi (`data/processed/`) indirdikten sonra, `pd.read_parquet(Path("data/processed") / "...")`
+kalıbını her seferinde dokümandan kopyalamak yerine:
+
+```bash
+pip install -e .
+```
+
+```python
+from turkiye_deprem import load_catalog, load_event_station_table, load_waveform_features
+
+df = load_catalog()                      # ana veri seti, 84.100 olay
+event_station = load_event_station_table()  # PGA-mesafe gibi analizler için (bkz. docs/schema.md)
+```
 
 ## Kullanım örneği
 

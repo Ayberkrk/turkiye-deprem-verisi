@@ -1,0 +1,33 @@
+{
+  "title": "Türkiye Deprem Verisi",
+  "description": "USGS, EMSC, ISC ve KOERI/ORFEUS-EIDA gibi açık kaynaklardan derlenip deduplike edilmiş, makine öğrenmesi kullanımına hazır bir Türkiye deprem kataloğu ve sismik dalga formu veri seti. Kod MIT lisanslıdır; veri katmanları kaynağa göre değişen lisanslara tabidir (bkz. LICENSE-DATA.md).",
+  "upload_type": "dataset",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Korkmaz, Ayberk"
+    }
+  ],
+  "keywords": [
+    "earthquake",
+    "seismology",
+    "turkey",
+    "dataset",
+    "machine-learning",
+    "open-data",
+    "obspy",
+    "geospatial"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/Ayberkrk/turkiye-deprem-verisi",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi",
+      "relation": "isIdenticalTo",
+      "scheme": "url"
+    }
+  ]
+}

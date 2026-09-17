@@ -16,10 +16,15 @@ jobs:
           python-version: "3.11"
 
       - name: Bağımlılıkları kur
-        run: pip install -r requirements-dev.txt
+        run: |
+          pip install -r requirements-dev.txt
+          pip install -e .
 
-      - name: Birim testler (scripts/ içindeki saf fonksiyonlar)
+      - name: Birim testler (scripts/ içindeki saf fonksiyonlar + turkiye_deprem paketi)
         run: python -m pytest tests/ -v
+
+      - name: Hızlı ön kontrol (obspy/dalga formu okunabilirlik kontrolü hariç)
+        run: python scripts/quick_check.py
 
       - name: Hugging Face veri seti sürümünü al
         id: hf_rev
