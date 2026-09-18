@@ -5,11 +5,36 @@
 # Kullanım:
 #   source venv/bin/activate
 #   bash scripts/run_all.sh
+#   bash scripts/run_all.sh --skip-isc-picks
 #
 # Not: fetch_waveforms_bulk.py adımı ~1-2 saat sürebilir (KOERI'nin açık
 # servisine saygılı bir hızda ilerliyor). Sabırlı olun.
 
 set -e
+
+skip_isc_picks=false
+
+usage() {
+    echo "Kullanım: bash scripts/run_all.sh [--skip-isc-picks]"
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --skip-isc-picks)
+            skip_isc_picks=true
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Bilinmeyen argüman: $1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
 
 echo "== 1/11: USGS kataloğu =="
 python scripts/download_usgs.py
@@ -29,8 +54,12 @@ python scripts/fetch_waveforms_bulk.py
 echo "== 6/11: Sinyal öznitelikleri, mühendislik metrikleri ve kalite kontrolü =="
 python scripts/enrich_waveforms.py
 
-echo "== 7/11: ISC uzman P/S pick'leri (opsiyonel, atlanabilir) =="
-python scripts/fetch_isc_picks.py
+echo "== 7/11: ISC uzman P/S pick'leri (opsiyonel) =="
+if [[ "$skip_isc_picks" == true ]]; then
+    echo "ISC uzman P/S pick'leri --skip-isc-picks ile atlandı."
+else
+    python scripts/fetch_isc_picks.py
+fi
 
 echo "== 8/11: Olay-istasyon tablosu (event-station) =="
 python scripts/build_event_station_table.py
