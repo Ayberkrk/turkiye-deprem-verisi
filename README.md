@@ -118,6 +118,13 @@ isterseniz, tek komutla sırayla:
 bash scripts/run_all.sh
 ```
 
+ISC Bulletin uzman pick verisi isteğe bağlıdır. Bu adımı çalıştırmadan
+diğer veri üretim adımlarına devam etmek için:
+
+```bash
+bash scripts/run_all.sh --skip-isc-picks
+```
+
 Ya da adım adım:
 
 ```bash
