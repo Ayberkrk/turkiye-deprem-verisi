@@ -52,6 +52,9 @@ def check(name: str, condition: bool, detail: str = ""):
 
 def structural_checks(events, stations, features):
     return [
+        ("Ana deprem kataloğu boş değil", len(events) > 0, f"{len(events)} satır"),
+        ("İstasyon tablosu boş değil", len(stations) > 0, f"{len(stations)} satır"),
+        ("Dalga formu özellik tablosu boş değil", len(features) > 0, f"{len(features)} satır"),
         ("event_id benzersiz", events["event_id"].is_unique, ""),
         ("Eksik değer yok (kritik sütunlar)",
          events[["magnitude", "latitude", "longitude", "time_utc"]].isna().sum().sum() == 0, ""),
