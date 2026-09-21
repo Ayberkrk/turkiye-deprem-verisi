@@ -72,6 +72,23 @@ def test_structural_checks_all_pass_on_clean_data(clean_events, clean_stations, 
     assert all(condition for _, condition, _ in results)
 
 
+def test_structural_checks_rejects_empty_core_tables(clean_events, clean_stations, clean_features):
+    results = structural_checks(
+        clean_events.iloc[0:0],
+        clean_stations.iloc[0:0],
+        clean_features.iloc[0:0],
+    )
+
+    for name in (
+        "Ana deprem kataloğu boş değil",
+        "İstasyon tablosu boş değil",
+        "Dalga formu özellik tablosu boş değil",
+    ):
+        condition, detail = result_for(results, name)
+        assert bool(condition) is False
+        assert detail == "0 satır"
+
+
 def test_structural_checks_catches_duplicate_event_id(clean_events, clean_stations, clean_features):
     broken = clean_events.copy()
     broken.loc[1, "event_id"] = "ev1"
