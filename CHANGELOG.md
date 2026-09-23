@@ -3,6 +3,29 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.8
+
+- `turkiye_deprem` paketindeki yükleyiciler (`load_catalog` vb.) artık
+  çalışma dizininden bağımsız çalışabiliyor: `data_dir=` parametresi ve
+  `TURKIYE_DEPREM_DATA_DIR` ortam değişkeni ile veri dizini bir kez
+  belirtilip her çağrıda tekrarlanmadan kullanılabiliyor. Varsayılan
+  (repo kökünden, `data/processed/`) davranış değişmedi. README'ye
+  örnek eklendi, testler: `tests/test_turkiye_deprem_io.py`. Fixes #19
+- Yeni `notebooks/04_phase_picking_baseline.py`: otomatik STA/LTA
+  pick'lerinin, resmi `phase_picking` split'i üzerinde ISC uzman
+  pick'lerine göre P/S zamanlama hatasını (güven skoruna göre
+  medyan-üstü/altı ayrımıyla) raporluyor - eğitilmiş bir model değil,
+  mevcut etiketin split üzerindeki somut hata payı. `docs/benchmarks.md`
+  ve `docs/leaderboard.md`'ye sonuç eklendi. Fixes #20
+- Yeni `notebooks/05_early_warning_baseline.py`: her P-sonrası pencere
+  (1/3/5/10s) için ham (cihaz tepkisi çıkarılmamış) genliğin log10'undan
+  Mw tahmini (kapalı-form en küçük kareler), okunamayan dosyaları
+  şeffaf şekilde sayıp atlıyor. `docs/benchmarks.md` ve
+  `docs/leaderboard.md`'ye sonuç eklendi. Fixes #21
+- (not: #18 - `validate_dataset.py`'nin boş temel veri tablolarını artık
+  reddettiği, bu depoda başka bir oturumda/PR'da yapıldı, CHANGELOG'a
+  daha önce eklenmemişti.)
+
 ## v5.7
 
 - Yeni `turkiye_deprem/` Python paketi + kök dizinde `pyproject.toml`:

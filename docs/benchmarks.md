@@ -66,6 +66,18 @@ pick'lerde hata belirgin şekilde daha düşük (P'de ~7x, S'de ~2,5x) - bu
 görevi kullanan modeller düşük güvenli pick'leri filtrelemeyi
 değerlendirmeli. Detaylar `DATA_CARD.md`'de.
 
+**Referans (baseline) sonuç**: `notebooks/04_phase_picking_baseline.py`,
+aynı karşılaştırmayı `compare_picks_to_isc.py`'nin `summarize()`
+fonksiyonunu kullanarak resmi train/val/test split'lerine kısıtlıyor -
+eğitilen bir model değil, otomatik pick'lerin kendisinin split üzerindeki
+hata payını raporluyor. Test bölmesinde (25 P / 10 S eşleşme, ISC Bulletin
+kapsamı sınırlı olduğu için küçük bir sayı): P-dalgasında ortalama 6,7s
+(medyan 0,67s), S-dalgasında ortalama 43,7s (medyan 8,4s).
+
+```
+python notebooks/04_phase_picking_baseline.py
+```
+
 ## 3. early_warning
 
 **Girdi**: P varışından sonraki ilk 1/3/5/10 saniyelik pencere
@@ -80,6 +92,31 @@ from obspy import read, UTCDateTime
 st = read(dosya_yolu)
 p_time = UTCDateTime(p_pick_time)
 pencere = st.slice(p_time, p_time + 3)  # ilk 3 saniye
+```
+
+**Referans (baseline) sonuç**: `notebooks/05_early_warning_baseline.py`,
+her pencere uzunluğu (1/3/5/10s) için ayrı ayrı, ham (cihaz tepkisi
+çıkarılmamış) genliğin log10'u ile Mw arasında kapalı-form en küçük
+kareler (aynı yöntem `02_ground_motion_baseline.py` ile). **SINIRLAMA**:
+öznitelik fiziksel olarak kalibre edilmiş bir birimde değil - bu bir
+operasyonel erken uyarı sistemi değil, sadece split'in öğrenilebilir bir
+sinyal taşıdığını gösteren minimal bir referans. Test sonucu (tüm
+pencerelerde train≈871-872, test≈182, ~%0,1 dosya okunamadı):
+
+| Pencere | MAE (Mw) | Naif (ortalama tahmin) |
+|---|---|---|
+| 1s | 0.401 | 0.405 |
+| 3s | 0.395 | 0.405 |
+| 5s | 0.392 | 0.405 |
+| 10s | 0.399 | 0.406 |
+
+Naif tahmine göre iyileşme küçük - ham, kalibre edilmemiş genlik zayıf
+bir öznitelik. Daha iyi bir sonuç için cihaz tepkisi çıkarılmış
+genlik/Pd (peak displacement) gibi bir öznitelik denenebilir (bkz.
+`scripts/enrich_waveforms.py`'deki tepki çıkarım adımı).
+
+```
+python notebooks/05_early_warning_baseline.py
 ```
 
 ## Referans (baseline) sonuç

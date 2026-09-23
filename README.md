@@ -163,6 +163,23 @@ df = load_catalog()                      # ana veri seti, 84.100 olay
 event_station = load_event_station_table()  # PGA-mesafe gibi analizler için (bkz. docs/schema.md)
 ```
 
+Yukarıdaki varsayılan, çalışma dizininizin repo kökü olduğunu (`data/processed/`
+alt dizininin oradan görülebildiğini) varsayar. Repo kökü dışında
+(başka bir proje klasörü, farklı dizinden açılmış bir notebook)
+çalışıyorsanız, veriyi indirdiğiniz gerçek dizini bir kez belirtin -
+her çağrıda tekrarlamanıza gerek kalmaz:
+
+```python
+import os
+os.environ["TURKIYE_DEPREM_DATA_DIR"] = "/nerede/olursa/olsun/data/processed"
+
+from turkiye_deprem import load_catalog
+df = load_catalog()  # artık cwd'den bağımsız çalışır
+```
+
+Ya da tek bir çağrı için `data_dir=` parametresini kullanın:
+`load_catalog(data_dir="/baska/bir/yer/data/processed")`.
+
 ## Kullanım örneği
 
 ```bash
@@ -176,6 +193,14 @@ python notebooks/make_readme_charts.py
 
 ```bash
 python notebooks/02_ground_motion_baseline.py
+```
+
+Diğer iki görev (phase_picking, early_warning) için de minimal referans
+script'leri var:
+
+```bash
+python notebooks/04_phase_picking_baseline.py   # otomatik pick'lerin ISC uzman pick'lerine göre hata payı, split üzerinde
+python notebooks/05_early_warning_baseline.py   # P-sonrası pencerelerden Mw tahmini (basit, kalibre edilmemiş bir öznitelikle)
 ```
 
 Detaylar ve güncel sonuç için `docs/benchmarks.md`; farklı modellerin

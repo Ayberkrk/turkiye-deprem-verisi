@@ -27,8 +27,16 @@ bölmesinde.
 
 ## phase_picking
 
-Henüz bir model baseline'ı yok - sadece etiketlerin kalitesi ölçüldü
-(`scripts/compare_picks_to_isc.py`, bkz. `docs/benchmarks.md`). P-dalgası
+**Görev**: dalga formu -> P/S varış zamanı. Metrik: ortalama/medyan
+mutlak zamanlama hatası (saniye, düşük daha iyi), ISC uzman pick'iyle
+eşleşen (sınırlı) alt kümede, test bölmesinde.
+
+| Model | P ortalama (medyan) | S ortalama (medyan) | Not | Kaynak |
+|---|---|---|---|---|
+| Otomatik STA/LTA pick'in kendisi (model yok) | 6.7s (0.67s) | 43.7s (8.4s) | n=25 P / 10 S eşleşme (test); eğitilmiş bir model değil, mevcut etiketin split üzerindeki hata payı | `notebooks/04_phase_picking_baseline.py` |
+
+Genel (split'e kısıtlanmamış, tüm eşleşmeler) etiket kalitesi ölçümü için
+`scripts/compare_picks_to_isc.py` ve `docs/benchmarks.md`'ye bakın: P-dalgası
 için otomatik pick'ler uzman pick'lerinden ortalama 9,3s (medyan 0,6s)
 sapıyor; S-dalgası için ortalama 51,6s (medyan 9,5s). Bu sayılar bir
 model skoru değil, etiket kalitesinin üst sınırı - bir model bu
@@ -36,4 +44,10 @@ etiketlerle eğitilirse, bu hatanın bir kısmını miras alır.
 
 ## early_warning
 
-Henüz bir baseline yok. Katkı bekleniyor.
+**Görev**: P varışından sonraki 1/3/5/10 saniyelik pencere -> Mw. Metrik:
+MAE (Mw biriminde, düşük daha iyi), test bölmesinde.
+
+| Model | 1s | 3s | 5s | 10s | Not | Kaynak |
+|---|---|---|---|---|---|---|
+| Naif (train ortalaması) | 0.405 | 0.405 | 0.405 | 0.406 | Girdi kullanmıyor, sadece referans | `notebooks/05_early_warning_baseline.py` |
+| log10(ham tepe genlik) - OLS | 0.401 | 0.395 | 0.392 | 0.399 | Kapalı-form en küçük kareler, cihaz tepkisi çıkarılmamış ham genlik (bkz. `docs/benchmarks.md` sınırlaması) | `notebooks/05_early_warning_baseline.py` |
