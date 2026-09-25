@@ -56,3 +56,11 @@ def test_unknown_argument_fails_before_pipeline_starts(tmp_path: Path) -> None:
     assert calls == []
     assert "Bilinmeyen argüman: --bilinmeyen" in result.stderr
     assert "Kullanım:" in result.stderr
+
+
+def test_ci_waveform_download_uses_the_revision_from_the_cache_key() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+
+    assert 'key: waveforms-${{ steps.hf_rev.outputs.sha }}' in workflow
+    assert 'HF_DATASET_REVISION: ${{ steps.hf_rev.outputs.sha }}' in workflow
+    assert '--revision "$HF_DATASET_REVISION"' in workflow

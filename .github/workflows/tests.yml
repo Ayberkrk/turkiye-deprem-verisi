@@ -43,10 +43,12 @@ jobs:
 
       - name: Dalga formu dosyalarını Hugging Face'ten indir
         if: steps.cache-waveforms.outputs.cache-hit != 'true'
+        env:
+          HF_DATASET_REVISION: ${{ steps.hf_rev.outputs.sha }}
         run: |
           pip install -U huggingface_hub
           hf download Ayberkkr/turkiye-deprem-verisi data/processed/waveforms/ \
-            --repo-type dataset --local-dir .
+            --repo-type dataset --revision "$HF_DATASET_REVISION" --local-dir .
 
       - name: Hızlı ön kontrol (obspy/dalga formu okunabilirlik kontrolü hariç)
         run: python scripts/quick_check.py
