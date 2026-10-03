@@ -7,13 +7,14 @@ sonuçlarla karşılaştırma anlamını kaybeder.
 """
 import hashlib
 
+import pandas as pd
 import pytest
 
 from build_benchmarks import (
     TRAIN_FRAC,
     VAL_FRAC,
+    balanced_station_split,
     event_split,
-    station_split,
 )
 
 
@@ -46,15 +47,27 @@ def test_event_split_proportions_roughly_match_target():
     assert counts["val"] / n == pytest.approx(VAL_FRAC, abs=0.03)
 
 
-def test_station_split_independent_of_event_split():
-    # Aynı string bir event_id olarak ve bir station olarak farklı
-    # kümelere düşebilmeli (aksi halde istasyon bazlı holdout, olay
-    # bazlı holdoutla aynı ayrımı tekrarlar ve ayrı bir sinyal vermez).
-    same_string = "KHMN"
-    assert event_split(same_string) in {"train", "val", "test"}
-    assert station_split(same_string) in {"train", "val", "test"}
+def test_balanced_station_split_keeps_each_station_in_one_split():
+    counts = pd.Series({f"ST{i:02d}": n for i, n in enumerate([190, 160, 120, 60, 30] + [7] * 60 + [1] * 20)})
+    split = balanced_station_split(counts)
+    assert set(split.index) == set(counts.index)
+    assert set(split.unique()) == {"train", "val", "test"}
 
 
-def test_station_split_is_deterministic():
-    for station in ["KHMN", "BOTS", "SAUV"]:
-        assert station_split(station) == station_split(station)
+def test_balanced_station_split_balances_records_not_stations():
+    # Gerçek verideki gibi çarpık dağılım: birkaç istasyon kayıtların
+    # çoğunu taşıyor. İstasyonları bağımsız hash'lemek test'e kayıtların
+    # ~%1'ini bırakıyordu; kayıt payı hedefe yakın olmalı.
+    counts = pd.Series({f"ST{i:02d}": n for i, n in enumerate([190, 160, 120, 110, 60, 30] + [7] * 60 + [1] * 20)})
+    split = balanced_station_split(counts)
+    share = counts.groupby(split).sum() / counts.sum()
+    assert share["train"] == pytest.approx(TRAIN_FRAC, abs=0.10)
+    assert share["val"] == pytest.approx(VAL_FRAC, abs=0.10)
+    assert share["test"] == pytest.approx(1 - TRAIN_FRAC - VAL_FRAC, abs=0.10)
+
+
+def test_balanced_station_split_is_deterministic_and_order_independent():
+    counts = pd.Series({"KHMN": 126, "DATC": 191, "GAZ": 12, "BOTS": 3, "SAUV": 40, "YKAV": 124})
+    first = balanced_station_split(counts)
+    shuffled = balanced_station_split(counts.sample(frac=1.0, random_state=3))
+    assert first.to_dict() == shuffled.to_dict()
