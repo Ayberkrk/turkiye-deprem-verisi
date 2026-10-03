@@ -198,6 +198,10 @@ a physically consistent way (`scripts/build_event_station_table.py`).
 | fas_dominant_freq_hz, fas_mean_freq_hz | Fourier spectrum summary |
 | p_pick_time, s_pick_time, p_pick_confidence, s_pick_confidence | Phase picks |
 | vs30_ms, nehrp_site_class, has_strong_motion | Station's site/sensor information |
+| highpass_corner_hz, window_max_magnitude | Filter corner frequency and the largest catalogue event in the window, see waveform_features.csv |
+| window_group | Shared key of events whose record windows overlap (origin times chained within 210 s): the `event_id` of the first event in the chain. Benchmark splits are made on this key; records in the same group may share samples. |
+| window_other_max_magnitude | Magnitude of the largest catalogue event, other than this one, falling inside the event's record window (and the 130 s before it); empty if none |
+| label_ambiguous | True when `window_other_max_magnitude >= magnitude`: it is unclear whether the peak values belong to this event or to the other earthquake in the window. Excluded from the `ground_motion` benchmark. |
 | response_removed_ok, usable_for_engineering, usable_for_phase_picking, qc_flags | Quality flags |
 | file | Waveform file path |
 

@@ -29,6 +29,7 @@ from event_ids import (  # noqa: E402
     representative_id_lookup,
 )
 from geo import haversine_km  # noqa: E402
+from windows import add_window_context  # noqa: E402
 
 PROCESSED = Path("data/processed")
 
@@ -105,6 +106,7 @@ def main():
     ].rename(columns={"latitude": "station_latitude", "longitude": "station_longitude"})
 
     table = join_features_with_distances(features, events_small, stations_small)
+    table = add_window_context(table, events[["event_id", "time_utc", "magnitude"]])
 
     out_columns = [
         "event_id", "station", "network", "location", "channel_used", "instrument_type_used",
@@ -120,6 +122,7 @@ def main():
         "fas_dominant_freq_hz", "fas_mean_freq_hz",
         "p_pick_time", "s_pick_time", "p_pick_confidence", "s_pick_confidence",
         "highpass_corner_hz", "window_max_magnitude",
+        "window_group", "window_other_max_magnitude", "label_ambiguous",
         "response_removed_ok", "usable_for_engineering", "usable_for_phase_picking", "qc_flags",
         "file",
     ]
@@ -131,6 +134,9 @@ def main():
 
     print(f"Olay-istasyon tablosu hazır -> {out_path} ({len(table)} satır)")
     print(f"  PGA değeri olan satır: {table['pga_g'].notna().sum()}")
+    print(f"  Penceresi başka bir olayla örtüşen grup sayısı: "
+          f"{(table.groupby('window_group')['event_id'].nunique() > 1).sum()}, "
+          f"etiketi belirsiz (label_ambiguous) satır: {int(table['label_ambiguous'].sum())}")
     print(f"  Mühendislik için kullanılabilir (usable_for_engineering) satır: "
           f"{table['usable_for_engineering'].sum() if 'usable_for_engineering' in table.columns else 'n/a'}")
 

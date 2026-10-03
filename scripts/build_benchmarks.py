@@ -8,13 +8,15 @@ Görevler:
 2. phase_picking: dalga formu dosyası -> P/S varış zamanı
 3. early_warning: P varışından sonraki ilk 1/3/5/10 saniyelik pencere -> Mw
 
-Bölme yöntemi (ÇOK ÖNEMLİ): bölme HER ZAMAN olay (event_id) bazlıdır.
-Aynı depremin farklı istasyonlardaki kayıtları asla train ve test'e
-dağılmaz - aksi halde model, aynı depremi başka bir açıdan zaten "görmüş"
-olur ve test skoru gerçekte olduğundan iyi görünür (data leakage). Bölme,
-event_id'nin hash'ine dayalı deterministik bir yöntemle yapılır: aynı
-event_id her zaman aynı bölmeye düşer, veri setine yeni olay eklense bile
-mevcut olayların bölmesi değişmez.
+Bölme yöntemi (ÇOK ÖNEMLİ): bölme HER ZAMAN olay bazlıdır. Aynı depremin
+farklı istasyonlardaki kayıtları asla train ve test'e dağılmaz - aksi
+halde model, aynı depremi başka bir açıdan zaten "görmüş" olur ve test
+skoru gerçekte olduğundan iyi görünür (data leakage). Aynı nedenle,
+kayıt pencereleri örtüşen olaylar (artçı dizilerinde 210 sn içinde art
+arda gelenler; dalga formları aynı örnekleri paylaşır) tek bir grup
+olarak bölünür (`window_group`, bkz. scripts/windows.py). Bölme, grup
+anahtarının hash'ine dayalı deterministik bir yöntemle yapılır;
+örtüşmesi olmayan bir olayın grup anahtarı kendi event_id'sidir.
 
 Ground-motion görevi için ayrıca iki "ileri seviye" holdout üretiliyor:
 - istasyon bazlı (bir istasyonun TÜM kayıtları tek bir bölmede kalır;
@@ -36,6 +38,14 @@ BENCH_DIR = Path("benchmarks")
 
 TRAIN_FRAC, VAL_FRAC = 0.70, 0.15  # kalan 0.15 test
 TIME_SPLIT_CUTOFF = "2022-01-01"  # zaman bazlı holdout için eşik
+
+
+def split_key(df: pd.DataFrame) -> pd.Series:
+    """Bölmenin hash'leneceği anahtar: varsa window_group, yoksa (eski bir
+    event_station_table ile çalışırken) event_id."""
+    if "window_group" in df.columns:
+        return df["window_group"].fillna(df["event_id"])
+    return df["event_id"]
 
 
 def event_split(event_id: str) -> str:
@@ -79,6 +89,13 @@ def build_ground_motion_task(table: pd.DataFrame):
     onlar farklı bir sinyal kalitesini temsil ediyor ve karıştırılırsa
     modelin öğrendiği ilişkiyi bozar (bkz. issue #2)."""
     df = table[table["usable_for_engineering"] == True].copy()  # noqa: E712
+    # Pencerede en az kendisi kadar büyük başka bir deprem varsa tepe
+    # değerin hangi olaya ait olduğu belirsiz; yanlış etiketli hedeflerle
+    # eğitim/değerlendirme yapmamak için bu kayıtlar görev dışında.
+    if "label_ambiguous" in df.columns:
+        n_before = len(df)
+        df = df[~df["label_ambiguous"].astype(bool)]
+        print(f"  etiketi belirsiz (pencerede eşit/daha büyük başka deprem) {n_before - len(df)} kayıt çıkarıldı")
     feature_cols = ["event_id", "station", "magnitude", "mag_type", "mw_estimate",
                      "epicentral_distance_km", "hypocentral_distance_km",
                      "vs30_ms", "nehrp_site_class"]
@@ -90,12 +107,13 @@ def build_ground_motion_task(table: pd.DataFrame):
     target_cols += [c for c in ["pga_rotd50_g", "pga_geomean_g", "pgv_rotd50_cms", "pgv_geomean_cms",
                                 "sa_rotd50_g_0_1s", "sa_rotd50_g_0_2s", "sa_rotd50_g_0_5s",
                                 "sa_rotd50_g_1_0s", "sa_rotd50_g_2_0s"] if c in df.columns]
-    df = df[feature_cols + target_cols + ["time_utc"]].dropna(subset=["pga_g", "epicentral_distance_km"])
+    df = df.assign(_split_key=split_key(df))
+    df = df[feature_cols + target_cols + ["time_utc", "_split_key"]].dropna(subset=["pga_g", "epicentral_distance_km"])
 
     out_dir = BENCH_DIR / "ground_motion"
     print(f"Görev: ground_motion ({len(df)} kayıt, sadece usable_for_engineering)")
 
-    df["split"] = df["event_id"].apply(event_split)
+    df["split"] = df.pop("_split_key").apply(event_split)
     write_splits(df, out_dir)
 
     # İleri seviye holdout 1: istasyon bazlı
@@ -130,12 +148,12 @@ def build_phase_picking_task(table: pd.DataFrame):
     cols = ["event_id", "station", "file", "p_pick_time", "s_pick_time",
             "p_pick_confidence", "s_pick_confidence", "sampling_rate_hz" if "sampling_rate_hz" in table.columns else None]
     cols = [c for c in cols if c is not None and c in df.columns]
-    df = df[cols].dropna(subset=["p_pick_time"])
+    df = df.assign(_split_key=split_key(df))[cols + ["_split_key"]].dropna(subset=["p_pick_time"])
 
     out_dir = BENCH_DIR / "phase_picking"
     print(f"Görev: phase_picking ({len(df)} kayıt, sadece usable_for_phase_picking, "
           f"ETİKETLER OTOMATİK - bkz. DATA_CARD.md)")
-    df["split"] = df["event_id"].apply(event_split)
+    df["split"] = df.pop("_split_key").apply(event_split)
     write_splits(df, out_dir)
 
 
@@ -154,13 +172,13 @@ def build_early_warning_task(table: pd.DataFrame):
         df = df[df["duration_sec"] >= 10]
     cols = ["event_id", "station", "file", "p_pick_time", "magnitude", "mag_type", "mw_estimate"]
     cols = [c for c in cols if c in df.columns]
-    df = df[cols]
+    df = df.assign(_split_key=split_key(df))[cols + ["_split_key"]]
     df["available_windows_sec"] = "1,3,5,10"
 
     out_dir = BENCH_DIR / "early_warning"
     print(f"Görev: early_warning ({len(df)} kayıt, pencereler kesilmedi, "
           f"kullanıcı p_pick_time'dan kendi kesecek)")
-    df["split"] = df["event_id"].apply(event_split)
+    df["split"] = df.pop("_split_key").apply(event_split)
     write_splits(df, out_dir)
 
 

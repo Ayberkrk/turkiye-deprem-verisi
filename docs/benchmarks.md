@@ -7,13 +7,24 @@ adil biçimde karşılaştırılabildiği bir zemine taşımak.
 
 ## Bölme yöntemi (çok önemli)
 
-Bölme HER ZAMAN olay (`event_id`) bazlıdır. Aynı depremin farklı
-istasyonlardaki kayıtları asla train ve test arasında bölünmez - aksi
-halde model aynı depremi başka bir açıdan zaten görmüş olur ve test
-skoru gerçekte olduğundan iyi çıkar (data leakage). Bölme, `event_id`'nin
-MD5 hash'ine dayalı deterministik bir kurala göre yapılıyor: aynı olay
-her zaman aynı bölmeye düşer, veri setine yeni olay eklendiğinde
-mevcutların bölmesi değişmez. Oranlar: %70 train, %15 val, %15 test.
+Bölme HER ZAMAN olay bazlıdır. Aynı depremin farklı istasyonlardaki
+kayıtları asla train ve test arasında bölünmez - aksi halde model aynı
+depremi başka bir açıdan zaten görmüş olur ve test skoru gerçekte
+olduğundan iyi çıkar (data leakage).
+
+**Pencereleri örtüşen olaylar tek grup olarak bölünür.** Her kayıt
+210 sn'lik sabit bir pencere; yoğun artçı dizilerinde art arda gelen
+olayların kayıtları aynı örnekleri paylaşıyor. Yalnızca `event_id`'ye
+göre bölmek bu durumda sızıntıyı önlemiyor (v5.11'de `ground_motion`
+test setindeki 349 kaydın 38'inin penceresi train/val'deki bir kayıtla
+örtüşüyordu). Bu yüzden origin zamanları 210 sn içinde zincirlenen
+olaylar aynı `window_group`'u alıyor ve bölme bu anahtarın MD5 hash'ine
+göre yapılıyor (1.098 olayın 154'ü 60 çok olaylı grupta; en büyük grup
+8 olay). Tek başına kalan bir olayın anahtarı kendi `event_id`'si
+olduğundan onların bölmesi değişmedi. Kural deterministik: aynı grup her
+zaman aynı bölmeye düşer. Oranlar: %70 train, %15 val, %15 test.
+`validate_dataset.py` hiçbir grubun birden fazla bölmeye yayılmadığını
+kontrol ediyor.
 
 ## 1. ground_motion
 
@@ -32,6 +43,14 @@ Sadece `usable_for_engineering=True` (güçlü hareket sensöründen gelen,
 kritik QC sorunu olmayan) kayıtlar kullanılıyor - broadband'den düşülmüş
 PGA değerleri bu görevde YOK.
 
+Ayrıca **etiketi belirsiz kayıtlar çıkarılıyor** (`label_ambiguous`):
+kayıt penceresine (veya 130 sn öncesine) katalogda en az bu olay kadar
+büyük başka bir deprem düşüyorsa, ölçülen tepe değerin hangi olaya ait
+olduğu bilinemez (ör. M7.5'ten 70 sn sonraki bir M4.6 artçısının
+"PGA"sı aslında ana şokun sarsıntısıdır). Kullanılabilir 2.152 kaydın
+240'ı bu nedenle görev dışında; `event_station_table.csv`'de duruyorlar
+ve `window_other_max_magnitude` ile kendi eşiğinizi seçebilirsiniz.
+
 `benchmarks/ground_motion/{train,val,test}.csv` yanında iki ileri seviye
 holdout da üretiliyor:
 
@@ -43,7 +62,7 @@ holdout da üretiliyor:
   geleceğe genelleyip genelleyemediğini test eder. **Bilinen dengesizlik**:
   gerçek dalga formu arşivinin büyük kısmı 2020 sonrası (özellikle 2023
   Kahramanmaraş depremi dizisi) yoğunlaştığı için bu bölmede test seti
-  train'den büyük çıkıyor (train≈623, test≈1529). Bu, arşivin doğal
+  train'den büyük çıkıyor (train≈608, test≈1304). Bu, arşivin doğal
   zaman dağılımını yansıtıyor.
 
 ## 2. phase_picking
@@ -78,8 +97,10 @@ aynı karşılaştırmayı `compare_picks_to_isc.py`'nin `summarize()`
 fonksiyonunu kullanarak resmi train/val/test split'lerine kısıtlıyor -
 eğitilen bir model değil, otomatik pick'lerin kendisinin split üzerindeki
 hata payını raporluyor. Test bölmesinde (25 P / 10 S eşleşme, ISC Bulletin
-kapsamı sınırlı olduğu için küçük bir sayı): P-dalgasında ortalama 6,7s
-(medyan 0,67s), S-dalgasında ortalama 43,7s (medyan 8,4s).
+kapsamı sınırlı olduğu için küçük bir sayı): P-dalgasında ortalama 6,4s
+(medyan 0,63s), S-dalgasında ortalama 52,4s (medyan 43,3s). n=10 gibi
+küçük bir örneklemde S medyanı bölmeye hangi olayların düştüğüne çok
+duyarlı; tüm eşleşmeler üzerindeki ölçüm yukarıda.
 
 ```
 python notebooks/04_phase_picking_baseline.py
@@ -108,14 +129,14 @@ kareler (aynı yöntem `02_ground_motion_baseline.py` ile). **SINIRLAMA**:
 öznitelik fiziksel olarak kalibre edilmiş bir birimde değil - bu bir
 operasyonel erken uyarı sistemi değil, sadece split'in öğrenilebilir bir
 sinyal taşıdığını gösteren minimal bir referans. Test sonucu (tüm
-pencerelerde train≈871-872, test≈182, ~%0,1 dosya okunamadı):
+pencerelerde train≈855-856, test≈180, ~%0,1 dosya okunamadı):
 
 | Pencere | MAE (Mw) | Naif (ortalama tahmin) |
 |---|---|---|
-| 1s | 0.401 | 0.405 |
-| 3s | 0.395 | 0.405 |
-| 5s | 0.392 | 0.405 |
-| 10s | 0.399 | 0.406 |
+| 1s | 0.383 | 0.387 |
+| 3s | 0.376 | 0.387 |
+| 5s | 0.373 | 0.387 |
+| 10s | 0.381 | 0.387 |
 
 Naif tahmine göre iyileşme küçük - ham, kalibre edilmemiş genlik zayıf
 bir öznitelik. Daha iyi bir sonuç için cihaz tepkisi çıkarılmış
@@ -140,7 +161,7 @@ kıyas noktası vermek - yayın kalitesinde bir GMPE değildir.
 python notebooks/02_ground_motion_baseline.py
 ```
 
-Güncel sonuç (test bölmesi, n=349): RMSE(log10 g) ≈ 0.42 (yaklaşık
+Güncel sonuç (test bölmesi, n=325): RMSE(log10 g) ≈ 0.42 (yaklaşık
 2.7x'lik bir faktör hatası), R² ≈ 0.67 - sadece train ortalamasını
 tahmin eden naif bir modelin RMSE'sinden (≈0.73) belirgin şekilde düşük. Bu, üç değişkenli
 basit bir doğrusal modelin bile PGA'nın büyük kısmını açıklayabildiğini,
@@ -159,14 +180,14 @@ python notebooks/03_ground_motion_randomforest.py
 
 | split | model | RMSE(log10 g) | R² |
 |---|---|---|---|
-| test | doğrusal (OLS) | 0.421 | 0.670 |
-| test | RandomForest | 0.403 | 0.697 |
+| test | doğrusal (OLS) | 0.418 | 0.669 |
+| test | RandomForest | 0.398 | 0.699 |
 
-RandomForest belirgin ama dramatik olmayan bir iyileşme sağlıyor (~4%
+RandomForest belirgin ama dramatik olmayan bir iyileşme sağlıyor (~5%
 daha düşük RMSE) - yani doğrusal model verideki ilişkinin çoğunu zaten
 yakalamış, ama tamamını değil; daha esnek modeller için hâlâ bir miktar
 pay var. Öznitelik önemine göre mesafe (`log_hypocentral_km`, ~0.74)
-büyüklükten (~0.17) ve Vs30'dan (~0.09) çok daha baskın - klasik
+büyüklükten (~0.18) ve Vs30'dan (~0.08) çok daha baskın - klasik
 azalım ilişkisiyle (mesafe arttıkça PGA hızla düşer) fiziksel olarak
 tutarlı.
 

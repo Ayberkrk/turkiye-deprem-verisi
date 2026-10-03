@@ -67,12 +67,17 @@ yapamıyor.
   pencereleri aynı örnekleri paylaşıyor ve tepe değer etiketlenen olaya
   ait olmayabiliyor. Mühendislik için kullanılabilir 2.152 kaydın
   346'sının penceresi aynı istasyondaki başka bir olayın kaydıyla
-  örtüşüyor; `ground_motion` benchmark'ında bunların 234'ü farklı
-  bölmelere düşmüş durumda (test setindeki 349 kaydın 38'i). Yani olay
-  bazlı bölme bu kayıtlar için sızıntıyı önlemiyor.
-  `window_max_magnitude`, pencereye düşen en büyük katalog depremini
-  verir; etiketteki büyüklükten belirgin şekilde büyükse kayıt dikkatle
-  kullanılmalı.
+  örtüşüyor. Benchmark tarafında iki önlem var (v5.12, bkz.
+  `docs/benchmarks.md`): pencereleri örtüşen olaylar `window_group` ile
+  tek grup olarak bölünüyor (sızıntı yok), ve penceresinde en az
+  kendisi kadar büyük başka bir deprem bulunan kayıtlar
+  (`label_ambiguous`, 240 kullanılabilir kayıt) `ground_motion`
+  görevine alınmıyor. Ham tablolarda (`event_station_table.csv`,
+  `waveform_features.csv`) bu kayıtlar duruyor; kendi analizinizde
+  `label_ambiguous`/`window_other_max_magnitude` ile filtreleyin.
+  Kalan sınırlama: penceredeki diğer deprem daha küçükse kayıt
+  tutuluyor, ama çok daha yakın küçük bir olay yine de tepe değeri
+  belirlemiş olabilir (mesafe hesaba katılmıyor).
 - USGS kataloğu, yerel ağların kendi kataloglarına göre küçük büyüklükteki
   depremleri daha az yakalayabilir (küresel ağın hassasiyeti yerel
   ağlardan düşüktür). EMSC/ISC eklenmesi bu boşluğu büyük ölçüde kapatıyor.

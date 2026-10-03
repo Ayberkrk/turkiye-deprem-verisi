@@ -25,7 +25,9 @@ from validate_dataset import (
     event_station_geometry_checks,
     fetch_log_consistency_check,
     ground_motion_plausibility_checks,
+    benchmark_leakage_checks,
     horizontal_component_checks,
+    load_benchmark_splits,
     phase_order_check,
     structural_checks,
     waveform_file_count_check,
@@ -64,6 +66,9 @@ def main():
         check(name, condition, detail)
 
     for name, condition, detail in horizontal_component_checks(features):
+        check(name, condition, detail)
+
+    for name, condition, detail in benchmark_leakage_checks(event_station, load_benchmark_splits(Path("benchmarks"))):
         check(name, condition, detail)
 
     phase_result = phase_order_check(features)

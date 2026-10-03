@@ -3,6 +3,34 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.12
+
+- **Benchmark bölmeleri artık pencereleri örtüşen olayları tek grup
+  olarak bölüyor** (`scripts/windows.py`, `window_group`). Her kayıt
+  210 sn'lik sabit bir pencere olduğundan, artçı dizilerinde art arda
+  gelen olayların kayıtları aynı örnekleri paylaşıyor; yalnızca
+  `event_id`'ye göre bölmek bu durumda sızıntıyı önlemiyordu
+  (`ground_motion` test setindeki 349 kaydın 38'inin penceresi
+  train/val'deki bir kayıtla örtüşüyordu). Dalga formu olan 1.098
+  olayın 154'ü 60 çok olaylı grupta; tek başına kalan olayların bölmesi
+  değişmedi. Üç görevde de artık hiçbir grup birden fazla bölmeye
+  yayılmıyor.
+- **Etiketi belirsiz kayıtlar `ground_motion` görevinden çıkarıldı**
+  (`label_ambiguous`): kayıt penceresinde katalogda en az o olay kadar
+  büyük başka bir deprem varsa tepe değerin hangi olaya ait olduğu
+  bilinemiyor. 2.152 kullanılabilir kaydın 240'ı; görev 1.912 kayıt
+  (train 1.217 / val 370 / test 325). Kayıtlar `event_station_table.csv`'de
+  duruyor, yeni sütunlar: `window_group`, `window_other_max_magnitude`,
+  `label_ambiguous`.
+- `validate_dataset.py`/`quick_check.py`'ye görev başına bir sızıntı
+  kontrolü (`benchmark_leakage_checks`).
+- Referans skorlar yeni bölmelerde yeniden ölçüldü. `ground_motion`
+  (test, n=325): OLS RMSE 0.418 / R² 0.669, RandomForest 0.398 / 0.699.
+  `early_warning` (test, n=180): 5 sn penceresinde MAE 0.373, naif
+  0.387. `phase_picking` (test): P ortalama 6,4 sn (medyan 0,63),
+  S ortalama 52,4 sn (medyan 43,3; n=10). **Önceki sürümlerin
+  skorlarıyla doğrudan kıyaslanamaz** (bölmeler değişti).
+
 ## v5.11
 
 - Deduplikasyon yöntemi değişti (`scripts/expand_catalog.py`, v3):
