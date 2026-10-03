@@ -3,6 +3,19 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.14
+
+- Yeni `notebooks/06_early_warning_pd_baseline.py`: erken uyarı görevi
+  için fiziksel olarak kalibre edilmiş referans. Cihaz tepkisi çıkarılmış
+  düşey tepe yer değiştirme (Pd) ve hiposantral mesafeden Mw tahmini
+  (`Mw = a*log10(Pd) + b*log10(R) + c`). Test MAE: 1 sn 0.344, 3 sn
+  0.313, 5 sn 0.298, 10 sn 0.280 (naif 0.394). `05`'teki ham genlik
+  referansı naifi neredeyse hiç geçemiyordu (0.373-0.383); kazancın çoğu
+  kalibrasyondan geliyor.
+- `benchmarks/early_warning/*.csv`'ye `epicentral_distance_km` ve
+  `hypocentral_distance_km` sütunları eklendi (satırlar ve bölmeler
+  değişmedi).
+
 ## v5.13
 
 - `holdout_by_station` bölmesi kayıt sayısına göre dengelendi

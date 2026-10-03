@@ -203,6 +203,7 @@ script'leri var:
 ```bash
 python notebooks/04_phase_picking_baseline.py   # otomatik pick'lerin ISC uzman pick'lerine göre hata payı, split üzerinde
 python notebooks/05_early_warning_baseline.py   # P-sonrası pencerelerden Mw tahmini (basit, kalibre edilmemiş bir öznitelikle)
+python notebooks/06_early_warning_pd_baseline.py  # aynı görev, kalibre edilmiş tepe yer değiştirme (Pd) + mesafe ile
 ```
 
 Detaylar ve güncel sonuç için `docs/benchmarks.md`; farklı modellerin
