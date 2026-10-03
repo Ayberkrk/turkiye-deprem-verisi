@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-03T09:21:51.328444+00:00",
+  "generated_at": "2026-10-03T09:30:04.833305+00:00",
   "total_events": 84080,
   "total_waveform_files": 5413,
   "checks_failed": 0,
@@ -146,6 +146,21 @@
     },
     {
       "check": "pga_g, bileşen bazlı tepe değerlerin (h1/h2/v) maksimumuna eşit",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "ground_motion benchmark'ında örtüşen pencereli olaylar aynı bölmede",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "phase_picking benchmark'ında örtüşen pencereli olaylar aynı bölmede",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "early_warning benchmark'ında örtüşen pencereli olaylar aynı bölmede",
       "status": "OK",
       "detail": ""
     },

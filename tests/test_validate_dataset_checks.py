@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from validate_dataset import (
+    benchmark_leakage_checks,
     dedup_quality_checks,
     event_station_geometry_checks,
     fetch_log_consistency_check,
@@ -274,6 +275,28 @@ def test_ground_motion_plausibility_flags_record_without_highpass_corner():
     condition, detail = result_for(ground_motion_plausibility_checks(broken), name)
     assert not condition
     assert "1" in detail
+
+
+def test_benchmark_leakage_check_catches_overlapping_events_in_different_splits():
+    event_station = pd.DataFrame(
+        {"event_id": ["a", "b", "c"], "station": ["S1", "S1", "S2"], "window_group": ["a", "a", "c"]}
+    )
+    name = "ground_motion benchmark'ında örtüşen pencereli olaylar aynı bölmede"
+
+    clean = {"ground_motion": {"train": pd.DataFrame({"event_id": ["a", "b"]}),
+                                "test": pd.DataFrame({"event_id": ["c"]})}}
+    condition, _ = result_for(benchmark_leakage_checks(event_station, clean), name)
+    assert condition
+
+    leaking = {"ground_motion": {"train": pd.DataFrame({"event_id": ["a"]}),
+                                  "test": pd.DataFrame({"event_id": ["b", "c"]})}}
+    condition, detail = result_for(benchmark_leakage_checks(event_station, leaking), name)
+    assert not condition
+    assert "1" in detail
+
+
+def test_benchmark_leakage_check_skipped_without_window_group():
+    assert benchmark_leakage_checks(pd.DataFrame({"event_id": ["a"]}), {}) == []
 
 
 def test_phase_order_check_catches_s_before_p():

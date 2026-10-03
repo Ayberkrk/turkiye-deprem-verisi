@@ -1,6 +1,6 @@
 # Veri Doğrulama Raporu
 
-Üretim zamanı: 2026-10-03T09:21:51.328444+00:00
+Üretim zamanı: 2026-10-03T09:30:04.833305+00:00
 
 Toplam olay: 84080, toplam dalga formu dosyası: 5413
 
@@ -35,6 +35,9 @@ Toplam olay: 84080, toplam dalga formu dosyası: 5413
 | pga_geomean_g iki yatay bileşenin tepe değerleri arasında | OK |  |
 | pga_rotd50_g fiziksel üst sınırın (hypot(h1, h2)) altında | OK |  |
 | pga_g, bileşen bazlı tepe değerlerin (h1/h2/v) maksimumuna eşit | OK |  |
+| ground_motion benchmark'ında örtüşen pencereli olaylar aynı bölmede | OK |  |
+| phase_picking benchmark'ında örtüşen pencereli olaylar aynı bölmede | OK |  |
+| early_warning benchmark'ında örtüşen pencereli olaylar aynı bölmede | OK |  |
 | S faz okuması her zaman P'den sonra | OK |  |
 | dedup_confidence 0-1 aralığında | OK |  |
 | Düşük güvenli (<0.5) çok kaynaklı küme sayısı makul seviyede (<%1) | OK |  |

@@ -9,7 +9,7 @@ tabloya satırını ekle. Skorun tekrar üretilebilir olması için:
 - Hangi split (`train`/`val`/`test`) üzerinde ölçüldüğünü belirt (test
   skorları val'e göre daha güvenilir bir kıyas noktasıdır).
 - Kısa bir açıklama veya kod linki ekle.
-- Mümkünse `docs/benchmarks.md`'deki bölme yöntemini (event bazlı,
+- Mümkünse `docs/benchmarks.md`'deki bölme yöntemini (olay grubu bazlı,
   hash'e dayalı) değiştirmeden kullan - farklı bir bölme kullanılan
   sonuçlar bu tabloyla doğrudan kıyaslanamaz.
 
@@ -23,9 +23,9 @@ bölmesinde.
 
 | Model | RMSE (log10 g) | R² | Not | Kaynak |
 |---|---|---|---|---|
-| Naif (train ortalaması) | 0.733 | 0.000 | Girdi kullanmıyor, sadece referans | `notebooks/02_ground_motion_baseline.py` |
-| Doğrusal (OLS, 3 öznitelik) | 0.421 | 0.670 | Kapalı-form en küçük kareler, ek bağımlılık yok | `notebooks/02_ground_motion_baseline.py` |
-| RandomForest (3 öznitelik) | 0.403 | 0.697 | 200 ağaç, max_depth=8 | `notebooks/03_ground_motion_randomforest.py` |
+| Naif (train ortalaması) | 0.727 | 0.000 | Girdi kullanmıyor, sadece referans | `notebooks/02_ground_motion_baseline.py` |
+| Doğrusal (OLS, 3 öznitelik) | 0.418 | 0.669 | Kapalı-form en küçük kareler, ek bağımlılık yok | `notebooks/02_ground_motion_baseline.py` |
+| RandomForest (3 öznitelik) | 0.398 | 0.699 | 200 ağaç, max_depth=8 | `notebooks/03_ground_motion_randomforest.py` |
 
 ## phase_picking
 
@@ -35,7 +35,7 @@ eşleşen (sınırlı) alt kümede, test bölmesinde.
 
 | Model | P ortalama (medyan) | S ortalama (medyan) | Not | Kaynak |
 |---|---|---|---|---|
-| Otomatik STA/LTA pick'in kendisi (model yok) | 6.7s (0.67s) | 43.7s (8.4s) | n=25 P / 10 S eşleşme (test); eğitilmiş bir model değil, mevcut etiketin split üzerindeki hata payı | `notebooks/04_phase_picking_baseline.py` |
+| Otomatik STA/LTA pick'in kendisi (model yok) | 6.4s (0.63s) | 52.4s (43.3s) | n=25 P / 10 S eşleşme (test); eğitilmiş bir model değil, mevcut etiketin split üzerindeki hata payı | `notebooks/04_phase_picking_baseline.py` |
 
 Genel (split'e kısıtlanmamış, tüm eşleşmeler) etiket kalitesi ölçümü için
 `scripts/compare_picks_to_isc.py` ve `docs/benchmarks.md`'ye bakın: P-dalgası
@@ -51,5 +51,5 @@ MAE (Mw biriminde, düşük daha iyi), test bölmesinde.
 
 | Model | 1s | 3s | 5s | 10s | Not | Kaynak |
 |---|---|---|---|---|---|---|
-| Naif (train ortalaması) | 0.405 | 0.405 | 0.405 | 0.406 | Girdi kullanmıyor, sadece referans | `notebooks/05_early_warning_baseline.py` |
-| log10(ham tepe genlik) - OLS | 0.401 | 0.395 | 0.392 | 0.399 | Kapalı-form en küçük kareler, cihaz tepkisi çıkarılmamış ham genlik (bkz. `docs/benchmarks.md` sınırlaması) | `notebooks/05_early_warning_baseline.py` |
+| Naif (train ortalaması) | 0.387 | 0.387 | 0.387 | 0.387 | Girdi kullanmıyor, sadece referans | `notebooks/05_early_warning_baseline.py` |
+| log10(ham tepe genlik) - OLS | 0.383 | 0.376 | 0.373 | 0.381 | Kapalı-form en küçük kareler, cihaz tepkisi çıkarılmamış ham genlik (bkz. `docs/benchmarks.md` sınırlaması) | `notebooks/05_early_warning_baseline.py` |

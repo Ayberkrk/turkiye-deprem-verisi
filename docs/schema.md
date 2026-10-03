@@ -195,6 +195,10 @@ tablo (`scripts/build_event_station_table.py`).
 | fas_dominant_freq_hz, fas_mean_freq_hz | Fourier spektrum özeti |
 | p_pick_time, s_pick_time, p_pick_confidence, s_pick_confidence | Faz okuması |
 | vs30_ms, nehrp_site_class, has_strong_motion | İstasyonun zemin/sensör bilgisi |
+| highpass_corner_hz, window_max_magnitude | Filtre köşe frekansı ve penceredeki en büyük katalog depremi, bkz. waveform_features.csv |
+| window_group | Kayıt pencereleri örtüşen (origin zamanları 210 sn içinde zincirlenen) olayların ortak anahtarı: zincirdeki ilk olayın `event_id`'si. Benchmark bölmeleri bu anahtara göre yapılır; aynı gruptaki kayıtlar aynı örnekleri paylaşabilir. |
+| window_other_max_magnitude | Olayın kayıt penceresine (ve 130 sn öncesine) düşen, kendisi dışındaki en büyük katalog depreminin büyüklüğü; yoksa boş |
+| label_ambiguous | `window_other_max_magnitude >= magnitude` ise True: tepe değerin bu olaya mı yoksa penceredeki diğer depreme mi ait olduğu belirsiz. `ground_motion` benchmark'ına alınmaz. |
 | response_removed_ok, usable_for_engineering, usable_for_phase_picking, qc_flags | Kalite bayrakları |
 | file | Dalga formu dosya yolu |
 

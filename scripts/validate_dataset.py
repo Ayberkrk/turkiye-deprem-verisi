@@ -187,6 +187,33 @@ def horizontal_component_checks(features):
     ]
 
 
+def benchmark_leakage_checks(event_station, splits_by_task):
+    """Pencereleri örtüşen olaylar (aynı window_group) aynı bölmede mi.
+    splits_by_task: {görev adı: {"train": df, "val": df, "test": df}}.
+    Örtüşen pencereler aynı örnekleri paylaştığı için farklı bölmelere
+    düşerlerse test skoru olduğundan iyi görünür."""
+    if event_station is None or "window_group" not in event_station.columns:
+        return []
+    groups = event_station.drop_duplicates("event_id").set_index("event_id")["window_group"]
+    results = []
+    for task, splits in splits_by_task.items():
+        rows = pd.concat([df[["event_id"]].assign(split=name) for name, df in splits.items()])
+        rows["window_group"] = rows["event_id"].map(groups).fillna(rows["event_id"])
+        leaking = int((rows.groupby("window_group")["split"].nunique() > 1).sum())
+        results.append((f"{task} benchmark'ında örtüşen pencereli olaylar aynı bölmede",
+                        leaking == 0, f"{leaking} grup birden fazla bölmeye yayılmış"))
+    return results
+
+
+def load_benchmark_splits(bench_dir):
+    splits_by_task = {}
+    for task in ["ground_motion", "phase_picking", "early_warning"]:
+        paths = {name: bench_dir / task / f"{name}.csv" for name in ["train", "val", "test"]}
+        if all(p.exists() for p in paths.values()):
+            splits_by_task[task] = {name: pd.read_csv(p, usecols=["event_id"]) for name, p in paths.items()}
+    return splits_by_task
+
+
 def phase_order_check(features):
     if not {"p_pick_time", "s_pick_time"}.issubset(features.columns):
         return None
@@ -240,6 +267,9 @@ def main():
         check(name, condition, detail)
 
     for name, condition, detail in horizontal_component_checks(features):
+        check(name, condition, detail)
+
+    for name, condition, detail in benchmark_leakage_checks(event_station, load_benchmark_splits(Path("benchmarks"))):
         check(name, condition, detail)
 
     phase_result = phase_order_check(features)
