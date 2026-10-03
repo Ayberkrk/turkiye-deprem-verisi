@@ -20,7 +20,8 @@ anahtarının hash'ine dayalı deterministik bir yöntemle yapılır;
 
 Ground-motion görevi için ayrıca iki "ileri seviye" holdout üretiliyor:
 - istasyon bazlı (bir istasyonun TÜM kayıtları tek bir bölmede kalır;
-  modelin "hiç görmediği bir istasyona" genelleyip genelleyemediğini test eder)
+  modelin "hiç görmediği bir istasyona" genelleyip genelleyemediğini test
+  eder; bölmeler kayıt sayısına göre dengelenir, bkz. balanced_station_split)
 - zaman bazlı (belirli bir tarihten sonraki tüm olaylar test'e ayrılır;
   modelin geleceğe genelleyip genelleyemediğini test eder)
 
@@ -63,14 +64,32 @@ def event_split(event_id: str) -> str:
     return "test"
 
 
-def station_split(station: str) -> str:
-    digest = hashlib.md5(("station_" + str(station)).encode()).hexdigest()
-    frac = int(digest[:8], 16) / 0xFFFFFFFF
-    if frac < TRAIN_FRAC:
-        return "train"
-    if frac < TRAIN_FRAC + VAL_FRAC:
-        return "val"
-    return "test"
+def _station_order_key(station: str) -> str:
+    return hashlib.md5(("station_" + str(station)).encode()).hexdigest()
+
+
+def balanced_station_split(record_counts: pd.Series) -> pd.Series:
+    """İstasyon -> bölme ataması; her istasyonun TÜM kayıtları tek bölmede
+    kalır ve bölmeler KAYIT sayısına göre ~%70/15/15 olur.
+
+    Olay bazlı bölmedeki gibi her istasyonu kendi hash'ine göre bağımsız
+    atamak burada işe yaramıyor: istasyon başına kayıt sayısı çok
+    dengesiz (medyan 7, en büyüğü ~190), bu yüzden istasyonların %15'i
+    test'e düşse bile kayıtların ancak %1-2'si test'te kalabiliyordu.
+    Bunun yerine istasyonlar hash sırasına dizilir (sıra veri
+    büyüklüğünden bağımsız, sözde-rastgele ve deterministik) ve kümülatif
+    kayıt payı sınırları geçtikçe bölme değişir.
+
+    record_counts: index'i istasyon, değeri o istasyonun kayıt sayısı."""
+    ordered = record_counts.loc[sorted(record_counts.index, key=_station_order_key)]
+    # Bir istasyonun bölmesi, kayıtlarının orta noktasının düştüğü paya göre
+    # belirlenir; büyük bir istasyon sınırı ortalarken hep aynı tarafa
+    # yuvarlanıp bölmeleri kaydırmasın diye.
+    midpoint_share = (ordered.cumsum() - ordered / 2) / ordered.sum()
+    split = pd.Series("test", index=ordered.index)
+    split[midpoint_share < TRAIN_FRAC + VAL_FRAC] = "val"
+    split[midpoint_share < TRAIN_FRAC] = "train"
+    return split
 
 
 def write_splits(df: pd.DataFrame, out_dir: Path, split_col: str = "split"):
@@ -118,7 +137,7 @@ def build_ground_motion_task(table: pd.DataFrame):
 
     # İleri seviye holdout 1: istasyon bazlı
     df_station = df.drop(columns=["split"]).copy()
-    df_station["split"] = df_station["station"].apply(station_split)
+    df_station["split"] = df_station["station"].map(balanced_station_split(df_station["station"].value_counts()))
     write_splits(df_station, out_dir / "holdout_by_station")
 
     # İleri seviye holdout 2: zaman bazlı (belirli tarihten sonrası hep test)

@@ -57,7 +57,15 @@ holdout da üretiliyor:
 - **`holdout_by_station/`**: bölme istasyon bazlı yapılıyor - bir
   istasyonun TÜM kayıtları tek bir bölmede kalıyor. Modelin hiç
   görmediği bir istasyona (yani bilmediği bir Vs30/zemin koşuluna)
-  genelleyip genelleyemediğini test eder.
+  genelleyip genelleyemediğini test eder. İstasyon başına kayıt sayısı
+  çok dengesiz olduğu için (medyan 7, en büyüğü ~190) bölmeler kayıt
+  sayısına göre dengeleniyor: istasyonlar hash sırasına dizilip
+  kümülatif kayıt payına göre atanıyor (train 1.297 kayıt / 55
+  istasyon, val 355 / 8, test 260 / 20). Olay bazlı bölmenin aksine bu
+  atama veri değiştiğinde kayabilir (bir istasyona kayıt eklenmesi
+  sınırları oynatır); sürümler arası kıyas yaparken aynı sürümün
+  dosyalarını kullanın. Referans: `02`'deki doğrusal model bu bölmede
+  test RMSE 0.358 / R² 0.791 veriyor (naif 0.790).
 - **`holdout_by_time/`**: 2022-01-01 öncesi train, sonrası test. Modelin
   geleceğe genelleyip genelleyemediğini test eder. **Bilinen dengesizlik**:
   gerçek dalga formu arşivinin büyük kısmı 2020 sonrası (özellikle 2023
@@ -193,9 +201,8 @@ tutarlı.
 
 ## Sınırlamalar
 
-- Bölme oranları küçük görev boyutları için (özellikle `holdout_by_station`
-  gibi) tam %70/15/15 tutmayabilir - hash bazlı yöntem, tam sayıda değil
-  olasılıksal bir denge sağlar.
+- Bölme oranları tam %70/15/15 tutmayabilir - hash bazlı yöntem, tam
+  sayıda değil olasılıksal bir denge sağlar.
 - `ground_motion` görevindeki hedefler arasında güçlü bir korelasyon var
   (PGA ile Sa(0.1s) gibi); bu fiziksel olarak beklenen bir durumdur, veri
   hatası değildir.

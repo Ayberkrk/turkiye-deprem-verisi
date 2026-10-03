@@ -3,6 +3,18 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.13
+
+- `holdout_by_station` bölmesi kayıt sayısına göre dengelendi
+  (`balanced_station_split`). Her istasyon kendi hash'ine göre bağımsız
+  atanınca, kayıt sayıları çok dengesiz olduğu için test seti 26
+  kayıtta (7 istasyon) kalıyordu ve bir kıyas noktası olarak
+  kullanılamıyordu. Artık istasyonlar hash sırasına dizilip kümülatif
+  kayıt payına göre atanıyor: train 1.297 / val 355 / test 260 kayıt
+  (55 / 8 / 20 istasyon), bölmeler arası istasyon kesişimi yok.
+  Doğrusal referans modelin bu bölmedeki test skoru: RMSE 0.358 /
+  R² 0.791.
+
 ## v5.12
 
 - **Benchmark bölmeleri artık pencereleri örtüşen olayları tek grup
