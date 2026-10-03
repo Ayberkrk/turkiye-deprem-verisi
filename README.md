@@ -111,6 +111,19 @@ hf download Ayberkkr/turkiye-deprem-verisi --repo-type dataset --local-dir .
 Bu, bu depodaki `data/processed/` ve `benchmarks/` klasörlerinin aynısını
 indirir; kod/script'ler için hâlâ bu GitHub reposu gerekli.
 
+Yalnızca tablolara ihtiyacınız varsa (dalga formları hariç), hiçbir şey
+indirmeden `datasets` ile de yükleyebilirsiniz:
+
+```python
+from datasets import load_dataset
+
+catalog = load_dataset("Ayberkkr/turkiye-deprem-verisi", "catalog", split="train")
+ground_motion = load_dataset("Ayberkkr/turkiye-deprem-verisi", "ground_motion")  # train/validation/test
+```
+
+Config'ler: `catalog`, `event_station`, `ground_motion`, `phase_picking`,
+`early_warning`.
+
 ## Veriyi yeniden üretme (kaynağından, opsiyonel)
 
 Veriyi indirmek yerine sıfırdan (kendi API çağrılarınızla) üretmek

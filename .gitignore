@@ -45,3 +45,4 @@ COMMIT_MESSAGE.txt
 # HuggingFace dataset repo'suna yüklenen veri kartı, bu (kod) reposuna
 # değil, ayrı bir HF dataset reposuna aittir
 HF_DATASET_CARD.md
+hf_parquet/
