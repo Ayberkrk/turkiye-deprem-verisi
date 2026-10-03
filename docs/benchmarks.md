@@ -231,6 +231,47 @@ büyüklükten (~0.18) ve Vs30'dan (~0.08) çok daha baskın - klasik
 azalım ilişkisiyle (mesafe arttıkça PGA hızla düşer) fiziksel olarak
 tutarlı.
 
+## Bağımsız bir modelle kıyas (yayınlanmış GMPE)
+
+`02`/`03` referansları bu verinin train bölmesinde eğitiliyor; iyi bir
+skor verinin kendi içinde tutarlı olduğunu gösterir, doğru olduğunu
+değil. `notebooks/07_gmpe_comparison.py`, gözlemleri bu veriyle
+kalibre edilmemiş bir modelle kıyaslıyor: Akkar, Sandıkkaya ve Bommer
+(2014), hiposantral mesafe sürümü (`scripts/gmpe.py`; uygulama
+OpenQuake Engine'in doğrulama tablolarıyla test ediliyor). Model Mw
+beklediği için yalnızca `mw_estimate` dolu kayıtlar kullanılıyor
+(test'te 325 kaydın 169'u); hedef, modelin tanımlandığı bileşen olan
+`pga_geomean_g`.
+
+| Bölme | n | Yanlılık (log10) | Std | RMSE |
+|---|---|---|---|---|
+| train | 592 | -0.242 | 0.387 | 0.457 |
+| val | 188 | -0.285 | 0.356 | 0.456 |
+| test | 169 | -0.238 | 0.390 | 0.456 |
+
+Yanlılık = log10(gözlenen) - log10(model). İki sonuç:
+
+- **Biçim uyuşuyor.** Sabit yanlılık çıkarıldığında modelin test hatası
+  (0.390), aynı satırlarda bu veride eğitilen doğrusal modelinkiyle
+  (0.387) neredeyse aynı. Büyüklük, mesafe ve zemin ölçeklemesi
+  literatürle tutarlı; yanlılık mesafe dilimleri arasında -0.20 ile
+  -0.31 arasında kalıyor.
+- **Düzey uyuşmuyor.** Gözlenen PGA, modelin tahmininden sistematik
+  olarak ~1,7 kat düşük (Mw 4-6 arasında -0.25 civarı, Mw > 6'da -0.14,
+  n=43). Bunun nedeni bu çalışmada AYRIŞTIRILMADI. Olası açıklamalar:
+  modelin türetildiği veri tabanında küçük depremlerin az olması
+  (GMPE'lerin küçük büyüklüklerde fazla tahmin etmesi literatürde
+  bilinen bir durum), Vs30'un ölçüm değil eğim tabanlı bir vekil olması,
+  faylanma tipinin bilinmemesi ya da bu veri setinin işleme zincirinde
+  henüz fark edilmemiş sistematik bir etken. İkinci bir bağımsız model
+  veya başka bir kaynaktan aynı kayıtların PGA değerleriyle kıyas bunu
+  ayırt eder; o yapılana kadar mutlak PGA düzeyini bu kadar bir
+  belirsizlikle değerlendirin.
+
+```
+python notebooks/07_gmpe_comparison.py
+```
+
 ## Sınırlamalar
 
 - Bölme oranları tam %70/15/15 tutmayabilir - hash bazlı yöntem, tam
