@@ -5,6 +5,15 @@ sürüm sürüm listeler.
 
 ## v5.15 (yayınlanmadı)
 
+- Yeni `scripts/gmpe.py` ve `notebooks/07_gmpe_comparison.py`:
+  gözlenen PGA'nın, bu veriyle kalibre edilmemiş yayınlanmış bir modelle
+  (Akkar, Sandıkkaya ve Bommer 2014, hiposantral mesafe sürümü) kıyası.
+  Uygulama OpenQuake Engine'in doğrulama tablolarıyla test ediliyor
+  (`tests/test_gmpe.py`). Sonuç: ölçekleme uyuşuyor (yanlılık
+  çıkarılınca test std 0.390, bu veride eğitilen doğrusal model 0.387),
+  ama gözlemler sistematik olarak ~1,7 kat düşük (log10 yanlılık
+  -0.24). Nedeni ayrıştırılmadı; `DATA_CARD.md` ve `docs/benchmarks.md`'ye
+  bilinen sınırlama olarak yazıldı.
 - Hugging Face'te `datasets.load_dataset` ve veri görüntüleyicisi için
   config'ler tanımlandı: `catalog`, `event_station`, `ground_motion`,
   `phase_picking`, `early_warning`. Hub tek veri setinde parquet ve CSV

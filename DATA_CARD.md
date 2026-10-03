@@ -55,6 +55,12 @@ yapamıyor.
 
 ## Bilinen sınırlamalar
 
+- **Mutlak PGA düzeyi bağımsız bir modelden ~1,7 kat düşük.** Akkar,
+  Sandıkkaya ve Bommer (2014) ile kıyasta (Mw'si olan 949 kayıt)
+  büyüklük/mesafe/zemin ölçeklemesi uyuşuyor ama gözlemler sistematik
+  olarak log10'da ~0,24 düşük. Neden ayrıştırılmadı (modelin küçük
+  büyüklüklerde fazla tahmin etmesi, vekil Vs30 ya da işleme zincirinde
+  sistematik bir etken olabilir); ayrıntı `docs/benchmarks.md`'de.
 - **Aynı kaynağın iki kez bildirdiği depremler birleştirilmiyor.**
   Deduplikasyon, aynı kaynaktan gelen iki olayı hiçbir zaman aynı
   kümeye koymuyor (yoğun artçı dizilerinde gerçek iki olayı yutmamak

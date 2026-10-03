@@ -25,6 +25,7 @@ bölmesinde.
 |---|---|---|---|---|
 | Naif (train ortalaması) | 0.727 | 0.000 | Girdi kullanmıyor, sadece referans | `notebooks/02_ground_motion_baseline.py` |
 | Doğrusal (OLS, 3 öznitelik) | 0.418 | 0.669 | Kapalı-form en küçük kareler, ek bağımlılık yok | `notebooks/02_ground_motion_baseline.py` |
+| Akkar vd. (2014), uydurma yok | 0.456 | - | Yayınlanmış GMPE, bu veriyle kalibre edilmedi; yalnızca Mw'si olan 169 test kaydında ve `pga_geomean_g` üzerinde, diğer satırlarla doğrudan kıyaslanamaz (aynı 169 satırda doğrusal model 0.387). Yanlılık -0.238, bkz. `docs/benchmarks.md` | `notebooks/07_gmpe_comparison.py` |
 | RandomForest (3 öznitelik) | 0.398 | 0.699 | 200 ağaç, max_depth=8 | `notebooks/03_ground_motion_randomforest.py` |
 
 ## phase_picking
