@@ -155,6 +155,38 @@ genlik/Pd (peak displacement) gibi bir öznitelik denenebilir (bkz.
 python notebooks/05_early_warning_baseline.py
 ```
 
+**Kalibre edilmiş referans (Pd + mesafe)**:
+`notebooks/06_early_warning_pd_baseline.py`, yukarıdaki iki eksiği
+gideriyor: cihaz tepkisi çıkarılıp düşey bileşende tepe yer değiştirme
+(Pd; 0.075 Hz nedensel yüksek geçiren filtre) hesaplanıyor ve
+hiposantral mesafe girdi olarak ekleniyor (aynı deprem uzakta daha küçük
+genlik üretir; erken uyarıda konum büyüklükten önce kestirilir). Model,
+literatürdeki standart Pd ilişkisinin doğrusal hali:
+`Mw = a*log10(Pd) + b*log10(R) + c`. Test sonucu (train n=857, test
+n=181):
+
+| Pencere | MAE (Mw) | Naif (ortalama tahmin) |
+|---|---|---|
+| 1s | 0.344 | 0.394 |
+| 3s | 0.313 | 0.394 |
+| 5s | 0.298 | 0.394 |
+| 10s | 0.280 | 0.394 |
+
+Pencere uzadıkça hata düşüyor (10 sn'de naife göre ~%29 iyileşme) -
+beklenen davranış. Hangi parçanın ne kattığı: aynı bölmede 3 sn
+penceresinde ham genlik tek başına 0.383, ham genlik + mesafe 0.384,
+Pd tek başına 0.340, Pd + mesafe 0.313; yani kazancın çoğu kalibrasyondan
+geliyor, mesafe ancak genlik fiziksel birimdeyken işe yarıyor. Kalan
+hatanın bir kısmı otomatik P pick'lerinin hatasından (pencere yanlış
+yerden başlıyor) ve dar hedef aralığından (Mw std ≈ 0.5) geliyor.
+
+Bu görevin CSV'leri `epicentral_distance_km` ve
+`hypocentral_distance_km` sütunlarını da içerir.
+
+```
+python notebooks/06_early_warning_pd_baseline.py
+```
+
 ## Referans (baseline) sonuç
 
 `notebooks/02_ground_motion_baseline.py`, `ground_motion` bölmeleri

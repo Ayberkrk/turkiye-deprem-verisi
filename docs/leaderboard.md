@@ -52,4 +52,5 @@ MAE (Mw biriminde, düşük daha iyi), test bölmesinde.
 | Model | 1s | 3s | 5s | 10s | Not | Kaynak |
 |---|---|---|---|---|---|---|
 | Naif (train ortalaması) | 0.387 | 0.387 | 0.387 | 0.387 | Girdi kullanmıyor, sadece referans | `notebooks/05_early_warning_baseline.py` |
+| log10(Pd) + log10(R) - OLS | 0.344 | 0.313 | 0.298 | 0.280 | Cihaz tepkisi çıkarılmış düşey tepe yer değiştirme + hiposantral mesafe; aynı satırlarda naif 0.394 | `notebooks/06_early_warning_pd_baseline.py` |
 | log10(ham tepe genlik) - OLS | 0.383 | 0.376 | 0.373 | 0.381 | Kapalı-form en küçük kareler, cihaz tepkisi çıkarılmamış ham genlik (bkz. `docs/benchmarks.md` sınırlaması) | `notebooks/05_early_warning_baseline.py` |

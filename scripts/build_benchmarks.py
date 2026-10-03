@@ -189,7 +189,10 @@ def build_early_warning_task(table: pd.DataFrame):
     # kayıt süresi olmalı (en uzun pencere seçeneği).
     if "duration_sec" in df.columns:
         df = df[df["duration_sec"] >= 10]
-    cols = ["event_id", "station", "file", "p_pick_time", "magnitude", "mag_type", "mw_estimate"]
+    # Mesafe: genlikten büyüklük kestirmek için gerekli (aynı deprem uzakta
+    # daha küçük genlik üretir); erken uyarıda konum büyüklükten önce bilinir.
+    cols = ["event_id", "station", "file", "p_pick_time", "magnitude", "mag_type", "mw_estimate",
+            "epicentral_distance_km", "hypocentral_distance_km"]
     cols = [c for c in cols if c in df.columns]
     df = df.assign(_split_key=split_key(df))[cols + ["_split_key"]]
     df["available_windows_sec"] = "1,3,5,10"
