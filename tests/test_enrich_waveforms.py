@@ -10,13 +10,17 @@ import pytest
 from obspy import Stream, Trace, UTCDateTime
 
 from enrich_waveforms import (
+    DEFAULT_HIGHPASS_HZ,
     aligned_horizontals,
+    apply_highpass,
     arias_and_cav,
+    highpass_corner_hz,
     horizontal_peak_measures,
     newmark_sdof_psa,
     rotd50,
     sa_rotd50,
     sdof_displacement_history,
+    window_max_magnitude,
 )
 
 
@@ -216,3 +220,53 @@ def test_aligned_horizontals_rejects_mismatched_sampling_or_no_overlap():
     assert aligned_horizontals(Stream([east, _trace("HNN", np.arange(10.0), sampling_rate=50.0)])) is None
     assert aligned_horizontals(Stream([east, _trace("HNN", np.arange(10.0), starttime=60.0)])) is None
     assert aligned_horizontals(Stream([east])) is None
+
+
+@pytest.mark.parametrize("magnitude, expected", [
+    (4.5, 0.1), (5.49, 0.1), (5.5, 0.05), (6.49, 0.05), (6.5, 0.03), (7.8, 0.03),
+    (None, DEFAULT_HIGHPASS_HZ), (float("nan"), DEFAULT_HIGHPASS_HZ),
+])
+def test_highpass_corner_decreases_with_magnitude(magnitude, expected):
+    assert highpass_corner_hz(magnitude) == expected
+
+
+def test_window_max_magnitude_uses_largest_event_in_window_and_lookback():
+    sec = 10 ** 9
+    times = np.array([0, 100, 400, 1000]) * sec
+    mags = np.array([7.8, 4.6, 4.7, 6.0])
+
+    # Pencere [150, 360]: 100. saniyedeki M4.6 geriye bakış payıyla (120s) dahil,
+    # 0. saniyedeki M7.8 dışarıda, 400. saniyedeki M4.7 pencere bitiminden sonra.
+    assert window_max_magnitude(times, mags, 150 * sec, 360 * sec) == 4.6
+    # Pencere biraz erken başlarsa M7.8'in kodası pencereye taşabilir.
+    assert window_max_magnitude(times, mags, 110 * sec, 320 * sec) == 7.8
+    assert window_max_magnitude(times, mags, 390 * sec, 600 * sec) == 4.7
+    assert window_max_magnitude(times, mags, 2000 * sec, 2210 * sec) is None
+
+
+def test_highpass_removes_drift_but_keeps_signal_peak():
+    # 2 Hz'lik sinyalin üstüne, köşe frekansının çok altında (0.005 Hz)
+    # ve sinyalden 5 kat büyük bir sürüklenme bindirilmiş: filtresiz tepe
+    # değer sürüklenmeyi ölçer, filtreli tepe değer sinyali.
+    sr, duration = 100.0, 200.0
+    t = np.arange(0, duration, 1 / sr)
+    signal = np.sin(2 * np.pi * 2.0 * t) * np.exp(-((t - 100) / 15) ** 2)
+    drift = 5.0 * np.sin(2 * np.pi * 0.005 * t)
+    stream = Stream([_trace("HNE", signal + drift, sampling_rate=sr)])
+    assert np.max(np.abs(stream[0].data)) > 4.0
+
+    apply_highpass(stream, 0.1)
+
+    assert np.max(np.abs(stream[0].data)) == pytest.approx(1.0, rel=0.02)
+
+
+def test_highpass_is_zero_phase():
+    sr = 100.0
+    t = np.arange(0, 120.0, 1 / sr)
+    pulse = np.exp(-((t - 60.0) / 0.2) ** 2) * np.sin(2 * np.pi * 3.0 * (t - 60.0))
+    stream = Stream([_trace("HNE", pulse, sampling_rate=sr)])
+    peak_before = np.argmax(np.abs(pulse))
+
+    apply_highpass(stream, 0.1)
+
+    assert np.argmax(np.abs(stream[0].data)) == peak_before

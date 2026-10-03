@@ -167,6 +167,8 @@ kontrol (QC) alanları (`scripts/enrich_waveforms.py`).
 | qc_flags | Tespit edilen kalite sorunlarının virgülle ayrılmış listesi (ör. `clipping_şüphesi`, `has_gaps`, `eksik_bileşen`) |
 | sa_g_0_1s ... sa_g_2_0s | %5 sönümlü SDOF sistem için sözde-ivme tepki spektrumu (g), periyotlar: 0.1/0.2/0.5/1.0/2.0 saniye (Newmark-beta, ortalama ivme yöntemi). En büyük genlikli tek bileşenden (düşey olabilir). |
 | sa_rotd50_g_0_1s ... sa_rotd50_g_2_0s | Aynı periyotlarda, iki yatay bileşenden RotD50 sözde-ivme tepki spektrumu (g) |
+| highpass_corner_hz | Tepki çıkarımından sonra ivme ve hız kayıtlarına uygulanan sıfır fazlı yüksek geçiren (4. derece Butterworth) filtrenin köşe frekansı (Hz): pencere büyüklüğü <5.5 için 0.1, 5.5-6.5 için 0.05, >=6.5 için 0.03. Bu frekansın altındaki içerik (ve yaklaşık 1/köşe saniyeden uzun periyotlar) güvenilir değildir. |
+| window_max_magnitude | Kayıt penceresine (ve 120 sn öncesine) düşen en büyük katalog depreminin büyüklüğü; filtre köşesi buna göre seçilir. Kaydın etiketlendiği olayın büyüklüğünden belirgin şekilde büyükse, pencere başka bir depremin sarsıntısını içeriyor demektir. |
 | arias_intensity_ms | Arias şiddeti (m/s) |
 | cav_ms | Kümülatif mutlak hız - CAV (m/s) |
 | duration_5_95_sec | Arias şiddetinin %5-%95 arasına ulaşma süresi (anlamlı sarsıntı süresi) |

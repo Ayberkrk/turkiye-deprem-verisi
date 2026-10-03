@@ -112,6 +112,7 @@ def main():
         "arias_intensity_ms", "cav_ms", "duration_sec", "duration_5_95_sec",
         "fas_dominant_freq_hz", "fas_mean_freq_hz",
         "p_pick_time", "s_pick_time", "p_pick_confidence", "s_pick_confidence",
+        "highpass_corner_hz", "window_max_magnitude",
         "response_removed_ok", "usable_for_engineering", "usable_for_phase_picking", "qc_flags",
         "file",
     ]

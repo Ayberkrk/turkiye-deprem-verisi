@@ -170,6 +170,8 @@ waveform file (`scripts/enrich_waveforms.py`).
 | qc_flags | Comma-separated list of detected quality issues (e.g. `clipping_şüphesi`, `has_gaps`, `eksik_bileşen` - Turkish flag names, kept as produced by the pipeline) |
 | sa_g_0_1s ... sa_g_2_0s | Pseudo-acceleration response spectrum (g) for a 5%-damped SDOF system, at periods 0.1/0.2/0.5/1.0/2.0 seconds (Newmark-beta, average acceleration method). From the single largest-amplitude component (which may be the vertical). |
 | sa_rotd50_g_0_1s ... sa_rotd50_g_2_0s | RotD50 pseudo-acceleration response spectrum (g) from the two horizontal components, at the same periods |
+| highpass_corner_hz | Corner frequency (Hz) of the zero-phase high-pass (4th-order Butterworth) filter applied to the acceleration and velocity records after response removal: 0.1 for window magnitude <5.5, 0.05 for 5.5-6.5, 0.03 for >=6.5. Content below this frequency (and periods longer than roughly 1/corner seconds) is not reliable. |
+| window_max_magnitude | Magnitude of the largest catalogue event falling inside the record window (and the 120 s before it); the filter corner is chosen from this. If it is clearly larger than the magnitude of the event the record is labelled with, the window contains another earthquake's shaking. |
 | arias_intensity_ms | Arias intensity (m/s) |
 | cav_ms | Cumulative absolute velocity - CAV (m/s) |
 | duration_5_95_sec | Time to go from 5% to 95% of Arias intensity (significant duration) |

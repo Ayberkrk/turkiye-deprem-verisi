@@ -142,7 +142,7 @@ python notebooks/02_ground_motion_baseline.py
 
 Güncel sonuç (test bölmesi, n=353): RMSE(log10 g) ≈ 0.42 (yaklaşık
 2.7x'lik bir faktör hatası), R² ≈ 0.67 - sadece train ortalamasını
-tahmin eden naif bir modelin RMSE'sinden (≈0.73) belirgin şekilde düşük. Bu, üç değişkenli
+tahmin eden naif bir modelin RMSE'sinden (≈0.74) belirgin şekilde düşük. Bu, üç değişkenli
 basit bir doğrusal modelin bile PGA'nın büyük kısmını açıklayabildiğini,
 yani split'lerin öğrenilebilir bir ilişki taşıdığını gösteriyor.
 
@@ -159,8 +159,8 @@ python notebooks/03_ground_motion_randomforest.py
 
 | split | model | RMSE(log10 g) | R² |
 |---|---|---|---|
-| test | doğrusal (OLS) | 0.424 | 0.666 |
-| test | RandomForest | 0.409 | 0.689 |
+| test | doğrusal (OLS) | 0.421 | 0.672 |
+| test | RandomForest | 0.405 | 0.697 |
 
 RandomForest belirgin ama dramatik olmayan bir iyileşme sağlıyor (~4%
 daha düşük RMSE) - yani doğrusal model verideki ilişkinin çoğunu zaten
