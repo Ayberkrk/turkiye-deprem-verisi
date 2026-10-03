@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-03T07:56:34.025907+00:00",
+  "generated_at": "2026-10-03T09:15:50.196201+00:00",
   "total_events": 84100,
   "total_waveform_files": 5413,
   "checks_failed": 0,
@@ -116,6 +116,11 @@
     },
     {
       "check": "Aşırı büyük PGV değeri yok (>500 cm/s şüpheli)",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Tepe değeri hesaplanan her kayıtta yüksek geçiren filtre köşesi kayıtlı",
       "status": "OK",
       "detail": ""
     },

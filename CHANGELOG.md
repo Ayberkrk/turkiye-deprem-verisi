@@ -3,6 +3,29 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.10
+
+- Tepki çıkarımından sonra ivme ve hız kayıtlarına sıfır fazlı yüksek
+  geçiren (4. derece Butterworth) filtre eklendi
+  (`scripts/enrich_waveforms.py`). Filtresiz halde zayıf kayıtlarda PGV,
+  sinyalin değil integrasyonla büyüyen düşük frekanslı gürültünün tepe
+  değerini veriyordu. Köşe frekansı, kayıt penceresine düşen en büyük
+  katalog depreminin büyüklüğüne göre seçiliyor (<5.5: 0.1 Hz, 5.5-6.5:
+  0.05 Hz, >=6.5: 0.03 Hz); sabit 0.1 Hz, M7.5+ yakın alan kayıtlarında
+  gerçek PGV'nin ~%40'ını kesiyordu. Yeni sütunlar: `highpass_corner_hz`,
+  `window_max_magnitude`.
+- **Değerler değişti** (v5.9'a göre, mühendislik için kullanılabilir
+  2.169 kayıtta yeni/eski medyan oranı): `pgv_rotd50_cms` en zayıf PGA
+  çeyreğinde 0.66, en güçlü çeyrekte 1.00; `pgv_cms` en zayıf çeyrekte
+  0.49. PGA, Sa ve Arias medyanları 1.00 (kayıtların %4-9'unda %5'ten
+  büyük fark, çoğu düşük frekanslı alet sıçraması içeren kayıtlar);
+  CAV 0.98, D5-95 0.97. M>=6.5 pencereli 33 kayıtta PGV medyan oranı
+  0.997. Faz okumaları, SNR ve QC bayrakları değişmedi.
+- `ground_motion` referans skorları yeniden ölçüldü (test, hedef
+  `pga_rotd50_g`): OLS RMSE 0.421 / R² 0.672, RandomForest 0.405 / 0.697.
+- `validate_dataset.py`'ye yeni kontrol: tepe değeri hesaplanan her
+  kayıtta filtre köşe frekansı kayıtlı.
+
 ## v5.9
 
 - Yatay bileşen tanımları eklendi (`scripts/enrich_waveforms.py`).

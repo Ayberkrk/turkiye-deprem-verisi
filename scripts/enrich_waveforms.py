@@ -49,6 +49,17 @@ yanlarına şunlar eklendi:
 İki yatay bileşen yoksa veya zaman pencereleri örtüşmüyorsa bu alanlar
 boş kalır.
 
+v5 notları: tepki çıkarımından sonra ivme ve hız kayıtlarına sıfır fazlı
+bir yüksek geçiren (high-pass) Butterworth filtre uygulanıyor. Filtresiz
+halde zayıf kayıtlarda PGV, sinyalin değil düşük frekanslı gürültünün
+(integrasyonla büyüyen) tepe değerini veriyordu: 40 kayıtlık bir
+örneklemde en zayıf PGA çeyreğinde filtresiz PGV filtrelinin medyanda
+~1,7 katıydı; PGA ve Sa ise %1'den az değişiyor. Köşe frekansı sabit
+değil: büyük depremlerin gerçek uzun periyotlu içeriği kesilmesin diye
+kayıt penceresine düşen en büyük katalog depreminin büyüklüğüne göre
+seçiliyor (bkz. `highpass_corner_hz`). Kullanılan değerler
+`highpass_corner_hz` ve `window_max_magnitude` sütunlarında.
+
 Yöntem notları (değişmedi):
 - PGA/PGV, aletin ham sayım (count) çıktısından değil, cihaz tepkisi
   (instrument response) çıkarılmış gerçek fiziksel birimlerden hesaplanır.
@@ -105,6 +116,7 @@ EXPECTED_COLUMNS = [
     "pga_geomean_g", "pga_rotd50_g", "pgv_geomean_cms", "pgv_rotd50_cms",
     "sa_rotd50_g_0_1s", "sa_rotd50_g_0_2s", "sa_rotd50_g_0_5s",
     "sa_rotd50_g_1_0s", "sa_rotd50_g_2_0s",
+    "highpass_corner_hz", "window_max_magnitude",
 ]
 
 SA_PERIODS_SEC = [0.1, 0.2, 0.5, 1.0, 2.0]
@@ -112,6 +124,71 @@ SA_DAMPING_RATIO = 0.05
 
 
 SA_COLUMN_SUFFIXES = ["0_1s", "0_2s", "0_5s", "1_0s", "2_0s"]
+
+# Kayıt penceresinden önce olmuş bir depremin kodası pencereye
+# taşabildiği için, pencere başından bu kadar geriye de bakılıyor.
+WINDOW_LOOKBACK_SEC = 120
+DEFAULT_HIGHPASS_HZ = 0.05
+HIGHPASS_CORNERS = 4
+
+
+def highpass_corner_hz(magnitude) -> float:
+    """Büyüklüğe göre yüksek geçiren filtre köşe frekansı (Hz).
+
+    Kaynağın köşe frekansı büyüklükle düşer (M5 civarında ~1 Hz, M7.5+
+    için ~0.03 Hz mertebesinde); filtre köşesi bunun altında kalmalı ki
+    gerçek sinyal kesilmesin, ama gereğinden düşük seçilirse zayıf
+    kayıtlarda gürültü hız integraline sızıyor. Gerçek veride ölçülen:
+    0.1 Hz, M<5.5 kayıtlarda PGV'yi yakınsatıyor ama M7.5+ yakın alan
+    kayıtlarında PGV'nin ~%40'ını kesiyor; 0.03 Hz'de bu kayıp ~%1.
+    Büyüklük bilinmiyorsa ikisinin arası bir varsayılan kullanılıyor."""
+    if magnitude is None or np.isnan(magnitude):
+        return DEFAULT_HIGHPASS_HZ
+    if magnitude >= 6.5:
+        return 0.03
+    if magnitude >= 5.5:
+        return 0.05
+    return 0.1
+
+
+def window_max_magnitude(catalog_times_ns, catalog_magnitudes, window_start_ns, window_end_ns,
+                         lookback_sec: float = WINDOW_LOOKBACK_SEC):
+    """Kayıt penceresine (ve hemen öncesine) düşen en büyük katalog
+    depreminin büyüklüğü; yoksa None. catalog_times_ns artan sıralı
+    olmalı. Dosyanın etiketlendiği olayın büyüklüğü yerine bu
+    kullanılıyor, çünkü artçı dizilerinde küçük bir olayın penceresi çok
+    daha büyük bir depremin sarsıntısını içerebiliyor."""
+    lo = np.searchsorted(catalog_times_ns, window_start_ns - int(lookback_sec * 1e9), side="left")
+    hi = np.searchsorted(catalog_times_ns, window_end_ns, side="right")
+    if hi <= lo:
+        return None
+    return float(np.max(catalog_magnitudes[lo:hi]))
+
+
+def load_catalog_times_and_magnitudes():
+    """Pencere büyüklüğü araması için (zaman, büyüklük) dizileri; katalog
+    henüz üretilmemişse None (filtre varsayılan köşe frekansına düşer)."""
+    import pandas as pd
+
+    for name in ["turkiye_deprem_katalogu_genisletilmis.parquet", "usgs_catalog_turkey.parquet"]:
+        path = PROCESSED / name
+        if path.exists():
+            cat = pd.read_parquet(path, columns=["time_utc", "magnitude"]).dropna()
+            cat["time_utc"] = pd.to_datetime(cat["time_utc"], utc=True)
+            cat = cat.sort_values("time_utc")
+            times_ns = cat["time_utc"].dt.tz_convert(None).to_numpy("datetime64[ns]").astype("int64")
+            return times_ns, cat["magnitude"].to_numpy(float)
+    return None
+
+
+def apply_highpass(stream, corner_hz: float):
+    """Stream'e yerinde sıfır fazlı yüksek geçiren filtre uygular. Sıfır
+    faz (ileri-geri) şart: tek yönlü filtre dalga biçimini kaydırıp tepe
+    değerleri ve faz varış zamanlarını bozar."""
+    stream.detrend("demean")
+    stream.taper(max_percentage=0.05)
+    stream.filter("highpass", freq=corner_hz, corners=HIGHPASS_CORNERS, zerophase=True)
+    return stream
 ROTD_ANGLES_RAD = np.deg2rad(np.arange(0, 180))
 
 
@@ -318,7 +395,9 @@ def _is_clipped(trace) -> bool:
     return bool(near_peak > max(5, 0.01 * len(data)))
 
 
-def compute_features(mseed_path: Path):
+def compute_features(mseed_path: Path, catalog=None):
+    """catalog: load_catalog_times_and_magnitudes() çıktısı; None ise
+    filtre köşe frekansı varsayılan değere düşer."""
     st_raw = read(str(mseed_path))
     qc_flags = []
 
@@ -398,13 +477,25 @@ def compute_features(mseed_path: Path):
         pga_geomean_g=None, pga_rotd50_g=None, pgv_geomean_cms=None, pgv_rotd50_cms=None,
         sa_rotd50_g_0_1s=None, sa_rotd50_g_0_2s=None, sa_rotd50_g_0_5s=None,
         sa_rotd50_g_1_0s=None, sa_rotd50_g_2_0s=None,
+        highpass_corner_hz=None, window_max_magnitude=None,
     )
+
+    window_mag = None
+    if catalog is not None and len(st):
+        window_mag = window_max_magnitude(
+            catalog[0], catalog[1],
+            min(tr.stats.starttime for tr in st).ns, max(tr.stats.endtime for tr in st).ns,
+        )
+    corner_hz = highpass_corner_hz(window_mag)
+    result["highpass_corner_hz"] = corner_hz
+    result["window_max_magnitude"] = window_mag
 
     response_removed_ok = False
     if response_available and len(pga_stream):
         try:
             st_acc = pga_stream.copy()
             st_acc.remove_response(inventory=inv, output="ACC", water_level=60)
+            apply_highpass(st_acc, corner_hz)
             pga_ms2 = max(np.max(np.abs(tr.data)) for tr in st_acc)
             result["pga_g"] = round(pga_ms2 / 9.81, 5)
             response_removed_ok = True
@@ -455,6 +546,7 @@ def compute_features(mseed_path: Path):
         try:
             st_vel = pga_stream.copy()
             st_vel.remove_response(inventory=inv, output="VEL", water_level=60)
+            apply_highpass(st_vel, corner_hz)
             pgv_ms = max(np.max(np.abs(tr.data)) for tr in st_vel)
             result["pgv_cms"] = round(pgv_ms * 100, 4)
 
@@ -549,6 +641,11 @@ def main():
         else:
             already_done = set(pd.read_csv(OUT_PATH)["file"])
 
+    catalog = load_catalog_times_and_magnitudes()
+    if catalog is None:
+        print("[UYARI] Katalog bulunamadı; yüksek geçiren filtre tüm kayıtlarda "
+              f"varsayılan {DEFAULT_HIGHPASS_HZ} Hz köşe frekansıyla uygulanacak.")
+
     is_new = not OUT_PATH.exists()
     with open(OUT_PATH, "a", newline="") as f:
         writer = None
@@ -556,7 +653,7 @@ def main():
             if str(path) in already_done:
                 continue
             try:
-                features = compute_features(path)
+                features = compute_features(path, catalog)
             except Exception as e:
                 print(f"[ATLANDI] {path.name}: {e}")
                 continue

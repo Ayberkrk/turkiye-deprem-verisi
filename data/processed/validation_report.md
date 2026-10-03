@@ -1,6 +1,6 @@
 # Veri Doğrulama Raporu
 
-Üretim zamanı: 2026-10-03T07:56:34.025907+00:00
+Üretim zamanı: 2026-10-03T09:15:50.196201+00:00
 
 Toplam olay: 84100, toplam dalga formu dosyası: 5413
 
@@ -29,6 +29,7 @@ Toplam olay: 84100, toplam dalga formu dosyası: 5413
 | hypocentral mesafe >= epicentral mesafe | OK |  |
 | Aşırı büyük PGA değeri yok (>4g şüpheli) | OK |  |
 | Aşırı büyük PGV değeri yok (>500 cm/s şüpheli) | OK |  |
+| Tepe değeri hesaplanan her kayıtta yüksek geçiren filtre köşesi kayıtlı | OK |  |
 | usable_for_engineering yalnızca strong_motion kayıtlarda True | OK |  |
 | pga_geomean_g iki yatay bileşenin tepe değerleri arasında | OK |  |
 | pga_rotd50_g fiziksel üst sınırın (hypot(h1, h2)) altında | OK |  |

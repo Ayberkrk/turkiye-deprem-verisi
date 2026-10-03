@@ -138,6 +138,13 @@ def ground_motion_plausibility_checks(features):
         ("Aşırı büyük PGV değeri yok (>500 cm/s şüpheli)", len(extreme_pgv) == 0,
          f"{len(extreme_pgv)} kayıt 500 cm/s üzerinde"),
     ]
+    if "highpass_corner_hz" in features.columns:
+        # Filtresiz bir kayıt, zayıf hareketlerde PGV'yi gürültüden okur
+        # (bkz. enrich_waveforms.py v5 notları).
+        processed = features[features["pga_g"].notna()]
+        unfiltered = processed[~(processed["highpass_corner_hz"] > 0)]
+        results.append(("Tepe değeri hesaplanan her kayıtta yüksek geçiren filtre köşesi kayıtlı",
+                         len(unfiltered) == 0, f"{len(unfiltered)} kayıtta köşe frekansı yok"))
     if "usable_for_engineering" in features.columns:
         non_sm_engineering = features[
             (features["usable_for_engineering"]) & (features["instrument_type_used"] != "strong_motion")

@@ -250,6 +250,19 @@ def test_horizontal_component_checks_flag_pga_not_matching_component_max(clean_h
     assert not condition
 
 
+def test_ground_motion_plausibility_flags_record_without_highpass_corner():
+    name = "Tepe değeri hesaplanan her kayıtta yüksek geçiren filtre köşesi kayıtlı"
+    clean = pd.DataFrame({"pga_g": [0.5, None], "pgv_cms": [10.0, None], "highpass_corner_hz": [0.1, None]})
+    condition, _ = result_for(ground_motion_plausibility_checks(clean), name)
+    assert condition
+
+    broken = clean.copy()
+    broken.loc[0, "highpass_corner_hz"] = None
+    condition, detail = result_for(ground_motion_plausibility_checks(broken), name)
+    assert not condition
+    assert "1" in detail
+
+
 def test_phase_order_check_catches_s_before_p():
     features = pd.DataFrame(
         {

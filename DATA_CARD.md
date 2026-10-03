@@ -55,6 +55,20 @@ yapamıyor.
 
 ## Bilinen sınırlamalar
 
+- **Aynı deprem katalogda iki satır olarak kalabiliyor.** Deduplikasyon
+  olayları zaman sırasıyla kümelediği için, bir kayıt önce kötü eşleşen
+  bir kümeye girdiğinde gerçek eşi ayrı bir olay olarak kalabiliyor
+  (5 sn ve 100 km içinde 200 civarı olay çifti). Dalga formu indirilen
+  olaylarda bu, aynı kaydın iki farklı `event_id` altında görünmesine
+  yol açıyor: `ground_motion` benchmark'ında 60 kayıt bu durumda,
+  34'ü farklı bölmelere düşmüş (test setindeki 353 kaydın 7'sinin eşi
+  train/val'de).
+- **Artçı dizilerinde kayıt penceresi başka depremleri de içerebiliyor.**
+  Pencere 210 sn; yoğun dizilerde (özellikle 2023 ve 2025) aynı
+  pencereye birden fazla olay düşüyor ve tepe değer etiketlenen olaya
+  ait olmayabiliyor. `window_max_magnitude`, pencereye düşen en büyük
+  katalog depremini verir; etiketteki büyüklükten belirgin şekilde
+  büyükse (103 kayıtta en az 0.5 fark) kayıt dikkatle kullanılmalı.
 - USGS kataloğu, yerel ağların kendi kataloglarına göre küçük büyüklükteki
   depremleri daha az yakalayabilir (küresel ağın hassasiyeti yerel
   ağlardan düşüktür). EMSC/ISC eklenmesi bu boşluğu büyük ölçüde kapatıyor.
