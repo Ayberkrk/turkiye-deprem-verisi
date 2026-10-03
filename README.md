@@ -4,7 +4,7 @@
 [![License: MIT (kod)](https://img.shields.io/github/license/Ayberkrk/turkiye-deprem-verisi)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/Ayberkrk/turkiye-deprem-verisi)](https://github.com/Ayberkrk/turkiye-deprem-verisi/releases)
 [![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-yellow)](https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22754706.svg)](https://doi.org/10.5281/zenodo.22754706)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22754705.svg)](https://doi.org/10.5281/zenodo.22754705)
 
 ## English summary
 

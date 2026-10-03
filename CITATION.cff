@@ -22,8 +22,8 @@ repository-code: "https://github.com/Ayberkrk/turkiye-deprem-verisi"
 url: "https://github.com/Ayberkrk/turkiye-deprem-verisi"
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.22754706"
-    description: "Zenodo arşiv kaydı (v5.3.1)"
+    value: "10.5281/zenodo.22754705"
+    description: "Zenodo arşivi (tüm sürümler; her zaman en güncel sürüme yönlenir)"
 # "license" alanı kasıtlı olarak boş bırakıldı: CFF şeması tek bir SPDX
 # lisansı bekliyor, ama bu depoda kod (MIT) ve veri (kaynağa göre
 # Public Domain/CC-BY-4.0/atıf-zorunlu FDSN) farklı lisanslara tabi.
@@ -38,4 +38,5 @@ keywords:
   - open-data
   - obspy
   - geospatial
-date-released: "2026-09-17"
+version: "5.14"
+date-released: "2026-10-03"
