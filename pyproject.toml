@@ -1,6 +1,6 @@
 [project]
 name = "turkiye-deprem-verisi"
-version = "0.1.0"
+version = "5.14.0"
 description = "Türkiye'ye özel deprem kataloğu ve dalga formu veri seti için yükleme yardımcıları"
 readme = "README.md"
 requires-python = ">=3.10"

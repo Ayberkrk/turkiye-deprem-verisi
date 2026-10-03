@@ -5,6 +5,12 @@ sürüm sürüm listeler.
 
 ## v5.14
 
+- Sürüm numaraları eşitlendi: `pyproject.toml` (0.1.0 -> 5.14.0) ve
+  `CITATION.cff` artık veri seti sürümünü taşıyor. DOI rozetleri ve
+  `CITATION.cff`, Zenodo'nun sürümden bağımsız DOI'sine
+  (`10.5281/zenodo.22754705`, her zaman en güncel sürüme yönlenir)
+  çevrildi; böylece her release sonrası elle güncelleme gerekmiyor.
+
 - Yeni `notebooks/06_early_warning_pd_baseline.py`: erken uyarı görevi
   için fiziksel olarak kalibre edilmiş referans. Cihaz tepkisi çıkarılmış
   düşey tepe yer değiştirme (Pd) ve hiposantral mesafeden Mw tahmini
