@@ -3,6 +3,40 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.9
+
+- Yatay bileşen tanımları eklendi (`scripts/enrich_waveforms.py`).
+  `pga_g`/`sa_g_*` düşey dahil en büyük genlikli tek bileşenden
+  geliyordu; GMPE'ler ise yatay harekete göre kalibre edildiği için bu
+  değerler onlarla doğrudan kıyaslanamıyordu. Mevcut sütunlar
+  değişmedi, `waveform_features.csv` ve `event_station_table.csv`'ye
+  şunlar eklendi: `horizontal_channels`, `pga_h1_g`/`pga_h2_g`/`pga_v_g`
+  (bileşen bazlı), `pga_geomean_g`/`pgv_geomean_cms` (yatay geometrik
+  ortalama), `pga_rotd50_g`/`pgv_rotd50_cms`/`sa_rotd50_g_*`
+  (yönelimden bağımsız RotD50, Boore 2010). Tam iki yatay bileşeni
+  olmayan kayıtlarda bu alanlar boş. Bkz. `docs/schema.md`.
+- Newmark-beta integrasyonu örnek örnek Python döngüsünden, aynı
+  cebirin eşdeğer IIR filtresi haline (`sdof_displacement_history`)
+  çevrildi; RotD50 tepki spektrumu iki bileşenin ayrı ayrı çözülmesini
+  gerektirdiği için gerekliydi. Eski döngü
+  `tests/test_enrich_waveforms.py`'de referans olarak duruyor ve yeni
+  uygulamayla 1e-9 göreli hata içinde eşleşiyor.
+- `ground_motion` benchmark bölmelerine yatay hedef sütunları eklendi;
+  referans modeller (`notebooks/02`, `03`) ve skor tablosu artık
+  `pga_rotd50_g` üzerinde. Eski `pga_g` skorlarıyla doğrudan
+  kıyaslanamaz. Yeni test sonucu: OLS RMSE 0.424 / R² 0.666,
+  RandomForest 0.409 / 0.689.
+- `enrich_waveforms.py` artık çalıştırmadan çalıştırmaya aynı sonucu
+  veriyor: boşluklu (gap içeren) dosyalarda merge sonrası iz sırası
+  değişebiliyor, "ilk iz"e bakan `channel_used` ve Z bileşeni seçimi de
+  buna göre oynuyordu. İz sırası kanal koduna göre sabitlendi. Önceki
+  sürüme göre 92 kayıtta `channel_used` etiketi, 2 kayıtta P pick/SNR
+  değişti; PGA/PGV/Sa/Arias/CAV değerlerinin hiçbiri değişmedi.
+- `validate_dataset.py`/`quick_check.py`'ye üç yeni kontrol
+  (`horizontal_component_checks`): geometrik ortalama iki bileşen
+  arasında, RotD50 fiziksel üst sınırın altında, `pga_g` bileşen
+  maksimumuna eşit.
+
 ## v5.8
 
 - `turkiye_deprem` paketindeki yükleyiciler (`load_catalog` vb.) artık

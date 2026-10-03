@@ -25,6 +25,7 @@ from validate_dataset import (
     event_station_geometry_checks,
     fetch_log_consistency_check,
     ground_motion_plausibility_checks,
+    horizontal_component_checks,
     phase_order_check,
     structural_checks,
     waveform_file_count_check,
@@ -60,6 +61,9 @@ def main():
         check(name, condition, detail)
 
     for name, condition, detail in ground_motion_plausibility_checks(features):
+        check(name, condition, detail)
+
+    for name, condition, detail in horizontal_component_checks(features):
         check(name, condition, detail)
 
     phase_result = phase_order_check(features)

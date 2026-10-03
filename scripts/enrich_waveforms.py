@@ -22,7 +22,7 @@ v3 notları: deprem mühendisliği için doğrudan kullanılabilecek ek
 - sa_g_0_1s / 0_2s / 0_5s / 1_0s / 2_0s: %5 sönümlü tek serbestlik
   dereceli (SDOF) sistem için sözde-ivme tepki spektrumu (pseudo-spectral
   acceleration), Newmark-beta (ortalama ivme, beta=1/4, gamma=1/2)
-  yöntemiyle sayısal integrasyonla hesaplanıyor (bkz. `newmark_sdof_psa`
+  yöntemiyle sayısal integrasyonla hesaplanıyor (bkz. `sdof_displacement_history`
   docstring'i: bu varyant koşulsuz kararlı olduğu için istasyonlar arası
   değişen örnekleme hızlarında güvenli).
 - arias_intensity_ms, cav_ms: Arias şiddeti ve kümülatif mutlak hız,
@@ -33,6 +33,21 @@ v3 notları: deprem mühendisliği için doğrudan kullanılabilecek ek
   tepe frekansı ve genlik-ağırlıklı ortalama frekansı.
 Bu değerler yalnızca güçlü hareket/broadband ivme kaydı elde edilebildiği
 (response_removed_ok=True) durumlarda hesaplanıyor.
+
+v4 notları: yatay bileşen tanımları eklendi. `pga_g`/`sa_g_*` düşey
+bileşen dahil tek bir (en büyük genlikli) bileşenden geliyor; oysa
+GMPE'ler yatay harekete göre kalibre edilir ve bu değerlerle doğrudan
+kıyaslanamaz. Mevcut sütunlar geriye dönük uyumluluk için değişmedi,
+yanlarına şunlar eklendi:
+- pga_h1_g / pga_h2_g / pga_v_g: bileşen bazlı tepe ivme
+  (`horizontal_channels` h1 ve h2'nin hangi kanallar olduğunu söyler).
+- pga_geomean_g, pgv_geomean_cms: iki yatay tepe değerin geometrik
+  ortalaması.
+- pga_rotd50_g, pgv_rotd50_cms, sa_rotd50_g_*: yönelimden bağımsız
+  RotD50 (Boore 2010) - sensörün kurulum açısına bağlı olmadığı için
+  güncel GMPE'lerin (NGA-West2 vb.) kullandığı tanım.
+İki yatay bileşen yoksa veya zaman pencereleri örtüşmüyorsa bu alanlar
+boş kalır.
 
 Yöntem notları (değişmedi):
 - PGA/PGV, aletin ham sayım (count) çıktısından değil, cihaz tepkisi
@@ -60,6 +75,7 @@ import numpy as np
 from obspy import read
 from obspy.clients.fdsn import Client
 from obspy.signal.trigger import classic_sta_lta, trigger_onset
+from scipy.signal import lfilter
 
 warnings.filterwarnings("ignore")
 
@@ -85,47 +101,133 @@ EXPECTED_COLUMNS = [
     "sa_g_0_1s", "sa_g_0_2s", "sa_g_0_5s", "sa_g_1_0s", "sa_g_2_0s",
     "arias_intensity_ms", "cav_ms", "duration_5_95_sec",
     "fas_dominant_freq_hz", "fas_mean_freq_hz",
+    "horizontal_channels", "pga_h1_g", "pga_h2_g", "pga_v_g",
+    "pga_geomean_g", "pga_rotd50_g", "pgv_geomean_cms", "pgv_rotd50_cms",
+    "sa_rotd50_g_0_1s", "sa_rotd50_g_0_2s", "sa_rotd50_g_0_5s",
+    "sa_rotd50_g_1_0s", "sa_rotd50_g_2_0s",
 ]
 
 SA_PERIODS_SEC = [0.1, 0.2, 0.5, 1.0, 2.0]
 SA_DAMPING_RATIO = 0.05
 
 
-def newmark_sdof_psa(accel: np.ndarray, dt: float, period_sec: float, damping: float = SA_DAMPING_RATIO) -> float:
-    """%5 sönümlü bir SDOF sistemin, verilen periyottaki sözde-ivme tepki
-    değerini (pseudo-spectral acceleration) Newmark-beta yöntemiyle
-    hesaplar. Ortalama ivme varyantı (beta=1/4, gamma=1/2) kullanılıyor;
-    bu varyant her dt/T oranında koşulsuz kararlıdır (istasyonlar arası
-    örnekleme hızı 20-100Hz arasında değiştiği için bu önemli). accel
-    birimi ne ise (burada m/s^2) dönüş değeri de o birimdedir;
-    PSA = wn^2 * max(|göreli yer değiştirme|). Referans: Chopra,
-    "Dynamics of Structures", Newmark's Method (doğrusal sistemler)."""
+SA_COLUMN_SUFFIXES = ["0_1s", "0_2s", "0_5s", "1_0s", "2_0s"]
+ROTD_ANGLES_RAD = np.deg2rad(np.arange(0, 180))
+
+
+def sdof_displacement_history(accel: np.ndarray, dt: float, period_sec: float,
+                              damping: float = SA_DAMPING_RATIO) -> np.ndarray:
+    """%5 sönümlü bir SDOF sistemin göreli yer değiştirme geçmişini
+    Newmark-beta yöntemiyle hesaplar. Ortalama ivme varyantı (beta=1/4,
+    gamma=1/2) kullanılıyor; bu varyant her dt/T oranında koşulsuz
+    kararlıdır (istasyonlar arası örnekleme hızı 20-100Hz arasında
+    değiştiği için bu önemli). Referans: Chopra, "Dynamics of
+    Structures", Newmark's Method (doğrusal sistemler).
+
+    Doğrusal sistemde ortalama ivme yöntemi, her adımda dengeyi sağlayan
+    yamuk kuralına özdeştir; [u, v] durumu için
+        x[i+1] = A x[i] + B (p[i] + p[i+1])
+    doğrusal özyinelemesini verir. Bu özyineleme örnek örnek Python
+    döngüsü yerine eşdeğer ikinci derece IIR filtresi olarak
+    çalıştırılıyor (aynı cebir, u0=v0=0 başlangıcı dahil; ~100 kat
+    hızlı, bu da RotD50 için iki bileşenin ayrı ayrı çözülmesini
+    mümkün kılıyor)."""
     wn = 2 * np.pi / period_sec
-    k, m, c = wn ** 2, 1.0, 2 * damping * wn
-    beta, gamma = 0.25, 0.5
+    k, c = wn ** 2, 2 * damping * wn
+    h = dt / 2
+    p = -np.asarray(accel, dtype=float)  # etkin yük: taban ivmesinden kaynaklanan atalet kuvveti
 
-    n = len(accel)
-    p = -m * accel  # etkin yük: taban ivmesinden kaynaklanan atalet kuvveti
+    lhs = np.array([[1.0, -h], [h * k, 1.0 + h * c]])
+    rhs = np.array([[1.0, h], [-h * k, 1.0 - h * c]])
+    A = np.linalg.solve(lhs, rhs)
+    B = np.linalg.solve(lhs, np.array([0.0, h]))
 
-    u = np.zeros(n)
-    v = np.zeros(n)
-    a = np.zeros(n)
-    a[0] = p[0] / m  # u0=v0=0 varsayımıyla
+    # u = [1, 0] x için transfer fonksiyonu; pay katsayılarındaki baştaki
+    # sıfır, x[i+1]'in q[i]'ye bağlı olmasından gelen bir örneklik gecikme.
+    b = [0.0, B[0], A[0, 1] * B[1] - A[1, 1] * B[0]]
+    a = [1.0, -(A[0, 0] + A[1, 1]), A[0, 0] * A[1, 1] - A[0, 1] * A[1, 0]]
+    q = np.append(p[:-1] + p[1:], 0.0)
+    return lfilter(b, a, q)
 
-    k_hat = k + gamma * c / (beta * dt) + m / (beta * dt ** 2)
-    coef_v = m / (beta * dt) + gamma * c / beta
-    coef_a = m / (2 * beta) + dt * (gamma / (2 * beta) - 1) * c
 
-    for i in range(n - 1):
-        d_p = (p[i + 1] - p[i]) + coef_v * v[i] + coef_a * a[i]
-        du = d_p / k_hat
-        dv = gamma / (beta * dt) * du - gamma / beta * v[i] + dt * (1 - gamma / (2 * beta)) * a[i]
-        da = du / (beta * dt ** 2) - v[i] / (beta * dt) - a[i] / (2 * beta)
-        u[i + 1] = u[i] + du
-        v[i + 1] = v[i] + dv
-        a[i + 1] = a[i] + da
+def newmark_sdof_psa(accel: np.ndarray, dt: float, period_sec: float, damping: float = SA_DAMPING_RATIO) -> float:
+    """Verilen periyottaki sözde-ivme tepki değeri (pseudo-spectral
+    acceleration): PSA = wn^2 * max(|göreli yer değiştirme|). accel
+    birimi ne ise (burada m/s^2) dönüş değeri de o birimdedir."""
+    wn = 2 * np.pi / period_sec
+    u = sdof_displacement_history(accel, dt, period_sec, damping)
+    return wn ** 2 * float(np.max(np.abs(u))) if len(u) else 0.0
 
-    return wn ** 2 * float(np.max(np.abs(u)))
+
+def rotd50(h1: np.ndarray, h2: np.ndarray) -> float:
+    """İki dik yatay bileşenin yönelimden bağımsız RotD50 değeri (Boore
+    2010): hareket 0-179 derece arasındaki her açıya döndürülür, her
+    açıdaki tepe mutlak değer alınır, bunların medyanı döndürülür.
+    Sensörün kurulum açısından bağımsızdır; tek bileşenin tepe değeri
+    ise aynı hareket için sensör nasıl döndürüldüyse ona göre değişir."""
+    peaks = [np.max(np.abs(h1 * np.cos(t) + h2 * np.sin(t))) for t in ROTD_ANGLES_RAD]
+    return float(np.median(peaks))
+
+
+def aligned_horizontals(stream):
+    """Stream'deki iki yatay bileşeni ortak zaman penceresine kırpılmış
+    (channel1, channel2, data1, data2, dt) olarak döndürür; tam iki
+    yatay bileşen yoksa, örnekleme hızları farklıysa veya pencereler
+    örtüşmüyorsa None. Döndürme (RotD) iki bileşenin örnek örnek aynı
+    ana karşılık gelmesini gerektirdiği için hizalama şart."""
+    horizontals = sorted(
+        (tr for tr in stream if not tr.stats.channel.endswith("Z")), key=lambda tr: tr.stats.channel
+    )
+    if len(horizontals) != 2:
+        return None
+    tr1, tr2 = horizontals
+    if tr1.stats.sampling_rate != tr2.stats.sampling_rate:
+        return None
+    start = max(tr1.stats.starttime, tr2.stats.starttime)
+    end = min(tr1.stats.endtime, tr2.stats.endtime)
+    if end <= start:
+        return None
+    d1 = tr1.slice(start, end).data.astype(float)
+    d2 = tr2.slice(start, end).data.astype(float)
+    n = min(len(d1), len(d2))
+    if n < 2:
+        return None
+    return tr1.stats.channel, tr2.stats.channel, d1[:n], d2[:n], 1.0 / tr1.stats.sampling_rate
+
+
+def horizontal_peak_measures(stream) -> dict:
+    """Bileşen bazlı tepe değerler (h1, h2, v), yatay geometrik ortalama
+    ve RotD50; stream'in biriminde. Hesaplanamayan alanlar None."""
+    out = dict(channels=None, h1=None, h2=None, v=None, geomean=None, rotd50=None)
+    verticals = [tr for tr in stream if tr.stats.channel.endswith("Z")]
+    if len(verticals) == 1:
+        out["v"] = float(np.max(np.abs(verticals[0].data)))
+
+    horizontals = sorted(
+        (tr for tr in stream if not tr.stats.channel.endswith("Z")), key=lambda tr: tr.stats.channel
+    )
+    if len(horizontals) != 2:
+        return out
+    out["channels"] = ",".join(tr.stats.channel for tr in horizontals)
+    out["h1"], out["h2"] = (float(np.max(np.abs(tr.data))) for tr in horizontals)
+    out["geomean"] = float(np.sqrt(out["h1"] * out["h2"]))
+
+    pair = aligned_horizontals(stream)
+    if pair is not None:
+        out["rotd50"] = rotd50(pair[2], pair[3])
+    return out
+
+
+def sa_rotd50(h1: np.ndarray, h2: np.ndarray, dt: float, period_sec: float,
+              damping: float = SA_DAMPING_RATIO) -> float:
+    """RotD50 sözde-ivme tepki değeri. SDOF sistem doğrusal olduğu için
+    döndürülmüş ivmenin tepkisi, iki bileşenin tepkilerinin aynı açıyla
+    döndürülmüş haline eşittir; bu yüzden 180 açı için 180 değil, sadece
+    2 integrasyon yeterli."""
+    wn = 2 * np.pi / period_sec
+    u1 = sdof_displacement_history(h1, dt, period_sec, damping)
+    u2 = sdof_displacement_history(h2, dt, period_sec, damping)
+    return wn ** 2 * rotd50(u1, u2)
 
 
 def arias_and_cav(accel_ms2: np.ndarray, dt: float):
@@ -232,6 +334,10 @@ def compute_features(mseed_path: Path):
 
     st = st_raw.copy()
     st.merge(method=1, fill_value="interpolate")
+    # Boşluklu dosyalarda merge sonrası iz sırası çalıştırmadan çalıştırmaya
+    # değişebiliyor; aşağıda "ilk iz"e bakan seçimler (channel_used, Z
+    # bileşeni) her çalıştırmada aynı sonucu versin diye sıra sabitleniyor.
+    st.sort(keys=["channel"])
     station = st[0].stats.station
     network = st[0].stats.network
     location = st[0].stats.location
@@ -288,6 +394,10 @@ def compute_features(mseed_path: Path):
         sa_g_0_1s=None, sa_g_0_2s=None, sa_g_0_5s=None, sa_g_1_0s=None, sa_g_2_0s=None,
         arias_intensity_ms=None, cav_ms=None, duration_5_95_sec=None,
         fas_dominant_freq_hz=None, fas_mean_freq_hz=None,
+        horizontal_channels=None, pga_h1_g=None, pga_h2_g=None, pga_v_g=None,
+        pga_geomean_g=None, pga_rotd50_g=None, pgv_geomean_cms=None, pgv_rotd50_cms=None,
+        sa_rotd50_g_0_1s=None, sa_rotd50_g_0_2s=None, sa_rotd50_g_0_5s=None,
+        sa_rotd50_g_1_0s=None, sa_rotd50_g_2_0s=None,
     )
 
     response_removed_ok = False
@@ -323,6 +433,22 @@ def compute_features(mseed_path: Path):
                     result["fas_mean_freq_hz"] = mean_freq
             except Exception:
                 pass
+
+            try:
+                acc_h = horizontal_peak_measures(st_acc)
+                result["horizontal_channels"] = acc_h["channels"]
+                for key, col in [("h1", "pga_h1_g"), ("h2", "pga_h2_g"), ("v", "pga_v_g"),
+                                 ("geomean", "pga_geomean_g"), ("rotd50", "pga_rotd50_g")]:
+                    if acc_h[key] is not None:
+                        result[col] = round(acc_h[key] / 9.81, 5)
+
+                pair = aligned_horizontals(st_acc)
+                if pair is not None and len(pair[2]) > 20:
+                    _, _, h1, h2, dt_h = pair
+                    for T, suffix in zip(SA_PERIODS_SEC, SA_COLUMN_SUFFIXES):
+                        result[f"sa_rotd50_g_{suffix}"] = round(sa_rotd50(h1, h2, dt_h, T) / 9.81, 5)
+            except Exception:
+                pass
         except Exception:
             pass
 
@@ -331,6 +457,12 @@ def compute_features(mseed_path: Path):
             st_vel.remove_response(inventory=inv, output="VEL", water_level=60)
             pgv_ms = max(np.max(np.abs(tr.data)) for tr in st_vel)
             result["pgv_cms"] = round(pgv_ms * 100, 4)
+
+            vel_h = horizontal_peak_measures(st_vel)
+            if vel_h["geomean"] is not None:
+                result["pgv_geomean_cms"] = round(vel_h["geomean"] * 100, 4)
+            if vel_h["rotd50"] is not None:
+                result["pgv_rotd50_cms"] = round(vel_h["rotd50"] * 100, 4)
         except Exception:
             pass
     result["response_removed_ok"] = response_removed_ok

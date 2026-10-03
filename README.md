@@ -22,7 +22,8 @@ coverage) for Turkey specifically.
   (KOERI/ORFEUS-EIDA, M>=4.5, 1,104 unique events), with instrument
   response removed and engineering features computed: PGA, PGV,
   pseudo-spectral acceleration Sa(T), Arias intensity, CAV, significant
-  duration, plus automated P/S phase picks with confidence scores and
+  duration (peak and spectral values also as orientation-independent
+  RotD50 of the two horizontals), plus automated P/S phase picks with confidence scores and
   quality-control flags (clipping, gaps, missing components).
 - **277 stations** with Vs30 / NEHRP site classification (from the USGS
   Global Vs30 Mosaic) - a field most comparable datasets omit, despite
@@ -32,7 +33,8 @@ coverage) for Turkey specifically.
   prediction, phase picking, and early-warning magnitude estimation -
   see `docs/benchmarks.md`. A baseline model
   (`notebooks/02_ground_motion_baseline.py`) demonstrates the splits
-  carry a learnable signal (test R^2 ~= 0.66).
+  carry a learnable signal (test R^2 ~= 0.67 on orientation-independent
+  RotD50 PGA).
 - Data layers carry mixed licenses depending on source (public domain,
   CC-BY-4.0, attribution-required open FDSN services) - see
   `LICENSE-DATA.md`. Code is MIT.

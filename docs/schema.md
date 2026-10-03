@@ -148,8 +148,12 @@ kontrol (QC) alanları (`scripts/enrich_waveforms.py`).
 | event_id, station | Olay ve istasyon kimliği |
 | network, location | SEED ağ/lokasyon kodu |
 | channel_used, instrument_type_used | PGA/PGV hesabında hangi kanal ve sensör tipinin (`strong_motion`/`broadband`/`short_period`) kullanıldığı. Güçlü hareket kanalı varsa öncelikli, yoksa broadband'e düşülür. |
-| pga_g | Tepe yer ivmesi (g), cihaz tepkisi çıkarılmış, `channel_used`'dan |
-| pgv_cms | Tepe yer hızı (cm/s), cihaz tepkisi çıkarılmış |
+| pga_g | Tepe yer ivmesi (g), cihaz tepkisi çıkarılmış. Üç bileşenin (düşey dahil) en büyüğü; GMPE'lerle kıyas için `pga_rotd50_g` kullanın. |
+| pgv_cms | Tepe yer hızı (cm/s), cihaz tepkisi çıkarılmış. `pga_g` gibi tüm bileşenlerin en büyüğü. |
+| horizontal_channels | Yatay tanımlarda kullanılan iki kanal (h1,h2 sırasıyla; ör. `HNE,HNN`). Tam iki yatay bileşen yoksa boş, aşağıdaki yatay alanlar da boş kalır. |
+| pga_h1_g, pga_h2_g, pga_v_g | Bileşen bazlı tepe ivme (g): iki yatay ve düşey. `pga_g` bunların maksimumudur. |
+| pga_geomean_g, pgv_geomean_cms | İki yatay bileşenin tepe değerlerinin geometrik ortalaması |
+| pga_rotd50_g, pgv_rotd50_cms | Yönelimden bağımsız RotD50 (Boore 2010): yatay hareket 0-179 derece arası her açıya döndürülür, tepe değerlerin medyanı alınır. Sensörün kurulum açısına bağlı değildir; güncel GMPE'lerin kullandığı tanım. |
 | snr_db | Sinyal/gürültü oranı (dB), P varışından önce/sonraki pencerelerin RMS oranı |
 | p_pick_time, s_pick_time | Otomatik faz okuması (STA/LTA). S sezgisel bir tahmindir, yayın kalitesinde değil. |
 | p_pick_confidence, s_pick_confidence | STA/LTA tetikleme gücüne dayalı kaba güven skoru (0-1) |
@@ -161,7 +165,8 @@ kontrol (QC) alanları (`scripts/enrich_waveforms.py`).
 | usable_for_engineering | PGA güçlü hareket sensöründen geldi VE kritik bir QC sorunu yok |
 | usable_for_phase_picking | P faz okuması var VE Z bileşeni/boşluk sorunu yok |
 | qc_flags | Tespit edilen kalite sorunlarının virgülle ayrılmış listesi (ör. `clipping_şüphesi`, `has_gaps`, `eksik_bileşen`) |
-| sa_g_0_1s ... sa_g_2_0s | %5 sönümlü SDOF sistem için sözde-ivme tepki spektrumu (g), periyotlar: 0.1/0.2/0.5/1.0/2.0 saniye (Newmark-beta, ortalama ivme yöntemi) |
+| sa_g_0_1s ... sa_g_2_0s | %5 sönümlü SDOF sistem için sözde-ivme tepki spektrumu (g), periyotlar: 0.1/0.2/0.5/1.0/2.0 saniye (Newmark-beta, ortalama ivme yöntemi). En büyük genlikli tek bileşenden (düşey olabilir). |
+| sa_rotd50_g_0_1s ... sa_rotd50_g_2_0s | Aynı periyotlarda, iki yatay bileşenden RotD50 sözde-ivme tepki spektrumu (g) |
 | arias_intensity_ms | Arias şiddeti (m/s) |
 | cav_ms | Kümülatif mutlak hız - CAV (m/s) |
 | duration_5_95_sec | Arias şiddetinin %5-%95 arasına ulaşma süresi (anlamlı sarsıntı süresi) |
@@ -183,6 +188,7 @@ tablo (`scripts/build_event_station_table.py`).
 | magnitude, mag_type | Olay büyüklüğü ve tipi |
 | mw_estimate, time_utc | Ölçek-homojen büyüklük tahmini ve olay zamanı |
 | pga_g, pgv_cms, snr_db | Bu istasyondaki sinyal öznitelikleri |
+| horizontal_channels, pga_h1_g, pga_h2_g, pga_v_g, pga_geomean_g, pga_rotd50_g, pgv_geomean_cms, pgv_rotd50_cms, sa_rotd50_g_* | Yatay bileşen tanımları, bkz. waveform_features.csv |
 | sa_g_0_1s ... sa_g_2_0s, arias_intensity_ms, cav_ms, duration_5_95_sec | Mühendislik öznitelikleri, bkz. waveform_features.csv |
 | fas_dominant_freq_hz, fas_mean_freq_hz | Fourier spektrum özeti |
 | p_pick_time, s_pick_time, p_pick_confidence, s_pick_confidence | Faz okuması |

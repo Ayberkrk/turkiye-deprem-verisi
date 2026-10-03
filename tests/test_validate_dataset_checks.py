@@ -12,6 +12,7 @@ from validate_dataset import (
     event_station_geometry_checks,
     fetch_log_consistency_check,
     ground_motion_plausibility_checks,
+    horizontal_component_checks,
     phase_order_check,
     structural_checks,
     waveform_file_count_check,
@@ -194,6 +195,59 @@ def test_ground_motion_plausibility_flags_extreme_pgv():
     results = ground_motion_plausibility_checks(features)
     condition, _ = result_for(results, "Aşırı büyük PGV değeri yok (>500 cm/s şüpheli)")
     assert bool(condition) is False
+
+
+@pytest.fixture
+def clean_horizontal_features():
+    # İkinci satır: tek yatay bileşenli kayıt, yatay alanlar boş.
+    return pd.DataFrame(
+        {
+            "pga_g": [0.09, 0.02],
+            "pga_h1_g": [0.04, None],
+            "pga_h2_g": [0.09, None],
+            "pga_v_g": [0.03, 0.02],
+            "pga_geomean_g": [0.06, None],
+            "pga_rotd50_g": [0.07, None],
+        }
+    )
+
+
+def test_horizontal_component_checks_pass_on_clean_data(clean_horizontal_features):
+    results = horizontal_component_checks(clean_horizontal_features)
+    assert len(results) == 3
+    assert all(bool(condition) for _, condition, _ in results)
+
+
+def test_horizontal_component_checks_skipped_for_old_schema():
+    assert horizontal_component_checks(pd.DataFrame({"pga_g": [0.1]})) == []
+
+
+def test_horizontal_component_checks_flag_geomean_outside_components(clean_horizontal_features):
+    broken = clean_horizontal_features.copy()
+    broken.loc[0, "pga_geomean_g"] = 0.095
+    condition, detail = result_for(
+        horizontal_component_checks(broken), "pga_geomean_g iki yatay bileşenin tepe değerleri arasında"
+    )
+    assert not condition
+    assert "1" in detail
+
+
+def test_horizontal_component_checks_flag_rotd50_above_physical_bound(clean_horizontal_features):
+    broken = clean_horizontal_features.copy()
+    broken.loc[0, "pga_rotd50_g"] = 0.11  # hypot(0.04, 0.09) ~= 0.0985
+    condition, _ = result_for(
+        horizontal_component_checks(broken), "pga_rotd50_g fiziksel üst sınırın (hypot(h1, h2)) altında"
+    )
+    assert not condition
+
+
+def test_horizontal_component_checks_flag_pga_not_matching_component_max(clean_horizontal_features):
+    broken = clean_horizontal_features.copy()
+    broken.loc[0, "pga_g"] = 0.5
+    condition, _ = result_for(
+        horizontal_component_checks(broken), "pga_g, bileşen bazlı tepe değerlerin (h1/h2/v) maksimumuna eşit"
+    )
+    assert not condition
 
 
 def test_phase_order_check_catches_s_before_p():

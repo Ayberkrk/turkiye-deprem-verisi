@@ -1,9 +1,24 @@
 {
-  "generated_at": "2026-09-13T08:37:58.765685+00:00",
+  "generated_at": "2026-10-03T07:56:34.025907+00:00",
   "total_events": 84100,
   "total_waveform_files": 5413,
   "checks_failed": 0,
   "checks": [
+    {
+      "check": "Ana deprem kataloğu boş değil",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "İstasyon tablosu boş değil",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Dalga formu özellik tablosu boş değil",
+      "status": "OK",
+      "detail": ""
+    },
     {
       "check": "event_id benzersiz",
       "status": "OK",
@@ -36,16 +51,6 @@
     },
     {
       "check": "has_waveform ile num_waveform_files tutarlı",
-      "status": "OK",
-      "detail": ""
-    },
-    {
-      "check": "Dalga formu dosyaları listelendiği kadar var",
-      "status": "OK",
-      "detail": ""
-    },
-    {
-      "check": "Tüm dalga formu dosyaları okunabilir",
       "status": "OK",
       "detail": ""
     },
@@ -85,6 +90,16 @@
       "detail": ""
     },
     {
+      "check": "Dalga formu dosyaları listelendiği kadar var",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "Tüm dalga formu dosyaları okunabilir",
+      "status": "OK",
+      "detail": ""
+    },
+    {
       "check": "event-station epicentral mesafesi koordinatlarla tutarlı (<=1km fark)",
       "status": "OK",
       "detail": ""
@@ -106,6 +121,21 @@
     },
     {
       "check": "usable_for_engineering yalnızca strong_motion kayıtlarda True",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "pga_geomean_g iki yatay bileşenin tepe değerleri arasında",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "pga_rotd50_g fiziksel üst sınırın (hypot(h1, h2)) altında",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "pga_g, bileşen bazlı tepe değerlerin (h1/h2/v) maksimumuna eşit",
       "status": "OK",
       "detail": ""
     },

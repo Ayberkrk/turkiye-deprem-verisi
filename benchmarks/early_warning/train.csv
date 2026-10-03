@@ -415,7 +415,7 @@ us6000rdhv,SIMA,data/processed/waveforms/us6000rdhv_SIMA.mseed,2025-09-28T22:48:
 us6000rdhv,TVSB,data/processed/waveforms/us6000rdhv_TVSB.mseed,2025-09-28T22:48:39.880000Z,4.6,mwr,4.6,"1,3,5,10"
 us6000rdhv,GORD,data/processed/waveforms/us6000rdhv_GORD.mseed,2025-09-28T22:48:44.870000Z,4.6,mwr,4.6,"1,3,5,10"
 us6000re6a,MAEG,data/processed/waveforms/us6000re6a_MAEG.mseed,2025-10-02T11:55:08.180000Z,5.0,mww,5.0,"1,3,5,10"
-us6000re6a,BOTS,data/processed/waveforms/us6000re6a_BOTS.mseed,2025-10-02T11:55:08.710000Z,5.0,mww,5.0,"1,3,5,10"
+us6000re6a,BOTS,data/processed/waveforms/us6000re6a_BOTS.mseed,2025-10-02T11:55:08.670000Z,5.0,mww,5.0,"1,3,5,10"
 us6000re6a,NMR9,data/processed/waveforms/us6000re6a_NMR9.mseed,2025-10-02T11:55:09.110000Z,5.0,mww,5.0,"1,3,5,10"
 us6000re6a,NMR8,data/processed/waveforms/us6000re6a_NMR8.mseed,2025-10-02T11:55:10.740000Z,5.0,mww,5.0,"1,3,5,10"
 us6000rfqg,SMAA,data/processed/waveforms/us6000rfqg_SMAA.mseed,2025-10-08T23:54:10.200000Z,4.9,mww,4.9,"1,3,5,10"

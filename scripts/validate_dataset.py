@@ -32,6 +32,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from geo import haversine_km
@@ -146,6 +147,36 @@ def ground_motion_plausibility_checks(features):
     return results
 
 
+def horizontal_component_checks(features):
+    """Yatay bileşen tanımlarının (bkz. enrich_waveforms.py v4 notları)
+    kendi içinde tutarlılığı. 5 ondalığa yuvarlanmış değerler
+    karşılaştırıldığı için küçük bir tolerans bırakılıyor."""
+    needed = {"pga_g", "pga_h1_g", "pga_h2_g", "pga_geomean_g", "pga_rotd50_g"}
+    if not needed.issubset(features.columns):
+        return []
+    tol = 2e-5
+    rows = features.dropna(subset=["pga_h1_g", "pga_h2_g"])
+    h_min = rows[["pga_h1_g", "pga_h2_g"]].min(axis=1)
+    h_max = rows[["pga_h1_g", "pga_h2_g"]].max(axis=1)
+
+    bad_geomean = rows[(rows["pga_geomean_g"] < h_min - tol) | (rows["pga_geomean_g"] > h_max + tol)]
+    # Herhangi bir açıdaki tepe değer, iki bileşenin tepe değerlerinin
+    # vektörel toplamını aşamaz; RotD50 de bu üst sınırın altında kalmalı.
+    rotd = rows.dropna(subset=["pga_rotd50_g"])
+    upper = np.hypot(rotd["pga_h1_g"], rotd["pga_h2_g"])
+    bad_rotd = rotd[(rotd["pga_rotd50_g"] > upper + tol) | (rotd["pga_rotd50_g"] < 0)]
+    component_cols = [c for c in ["pga_h1_g", "pga_h2_g", "pga_v_g"] if c in rows.columns]
+    bad_max = rows[(rows["pga_g"] - rows[component_cols].max(axis=1)).abs() > tol]
+    return [
+        ("pga_geomean_g iki yatay bileşenin tepe değerleri arasında",
+         len(bad_geomean) == 0, f"{len(bad_geomean)} aykırı satır"),
+        ("pga_rotd50_g fiziksel üst sınırın (hypot(h1, h2)) altında",
+         len(bad_rotd) == 0, f"{len(bad_rotd)} aykırı satır"),
+        ("pga_g, bileşen bazlı tepe değerlerin (h1/h2/v) maksimumuna eşit",
+         len(bad_max) == 0, f"{len(bad_max)} aykırı satır"),
+    ]
+
+
 def phase_order_check(features):
     if not {"p_pick_time", "s_pick_time"}.issubset(features.columns):
         return None
@@ -196,6 +227,9 @@ def main():
         check(name, condition, detail)
 
     for name, condition, detail in ground_motion_plausibility_checks(features):
+        check(name, condition, detail)
+
+    for name, condition, detail in horizontal_component_checks(features):
         check(name, condition, detail)
 
     phase_result = phase_order_check(features)

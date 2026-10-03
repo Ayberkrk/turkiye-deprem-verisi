@@ -151,8 +151,12 @@ waveform file (`scripts/enrich_waveforms.py`).
 | event_id, station | Event and station id |
 | network, location | SEED network/location code |
 | channel_used, instrument_type_used | Which channel and sensor type (`strong_motion`/`broadband`/`short_period`) was used for the PGA/PGV computation. Strong-motion channel takes priority if present, otherwise falls back to broadband. |
-| pga_g | Peak ground acceleration (g), instrument response removed, from `channel_used` |
-| pgv_cms | Peak ground velocity (cm/s), instrument response removed |
+| pga_g | Peak ground acceleration (g), instrument response removed. Largest of the three components (vertical included); use `pga_rotd50_g` when comparing against GMPEs. |
+| pgv_cms | Peak ground velocity (cm/s), instrument response removed. Like `pga_g`, the largest of all components. |
+| horizontal_channels | The two channels used for the horizontal definitions (h1,h2 in order, e.g. `HNE,HNN`). Empty when there are not exactly two horizontal components, in which case the horizontal fields below are empty too. |
+| pga_h1_g, pga_h2_g, pga_v_g | Per-component peak acceleration (g): the two horizontals and the vertical. `pga_g` is their maximum. |
+| pga_geomean_g, pgv_geomean_cms | Geometric mean of the two horizontal components' peak values |
+| pga_rotd50_g, pgv_rotd50_cms | Orientation-independent RotD50 (Boore 2010): the horizontal motion is rotated to every angle from 0 to 179 degrees and the median of the peak values is taken. Does not depend on how the sensor was installed; the definition used by current GMPEs. |
 | snr_db | Signal-to-noise ratio (dB), RMS ratio of the windows before/after the P arrival |
 | p_pick_time, s_pick_time | Automatic phase pick (STA/LTA). S is a heuristic estimate, not publication quality. |
 | p_pick_confidence, s_pick_confidence | Rough confidence score (0-1) based on STA/LTA trigger strength |
@@ -164,7 +168,8 @@ waveform file (`scripts/enrich_waveforms.py`).
 | usable_for_engineering | PGA came from a strong-motion sensor AND there is no critical QC issue |
 | usable_for_phase_picking | A P-phase pick exists AND there is no Z-component/gap issue |
 | qc_flags | Comma-separated list of detected quality issues (e.g. `clipping_şüphesi`, `has_gaps`, `eksik_bileşen` - Turkish flag names, kept as produced by the pipeline) |
-| sa_g_0_1s ... sa_g_2_0s | Pseudo-acceleration response spectrum (g) for a 5%-damped SDOF system, at periods 0.1/0.2/0.5/1.0/2.0 seconds (Newmark-beta, average acceleration method) |
+| sa_g_0_1s ... sa_g_2_0s | Pseudo-acceleration response spectrum (g) for a 5%-damped SDOF system, at periods 0.1/0.2/0.5/1.0/2.0 seconds (Newmark-beta, average acceleration method). From the single largest-amplitude component (which may be the vertical). |
+| sa_rotd50_g_0_1s ... sa_rotd50_g_2_0s | RotD50 pseudo-acceleration response spectrum (g) from the two horizontal components, at the same periods |
 | arias_intensity_ms | Arias intensity (m/s) |
 | cav_ms | Cumulative absolute velocity - CAV (m/s) |
 | duration_5_95_sec | Time to go from 5% to 95% of Arias intensity (significant duration) |
@@ -186,6 +191,7 @@ a physically consistent way (`scripts/build_event_station_table.py`).
 | magnitude, mag_type | Event magnitude and type |
 | mw_estimate, time_utc | Scale-homogeneous magnitude estimate and event time |
 | pga_g, pgv_cms, snr_db | Signal features at this station |
+| horizontal_channels, pga_h1_g, pga_h2_g, pga_v_g, pga_geomean_g, pga_rotd50_g, pgv_geomean_cms, pgv_rotd50_cms, sa_rotd50_g_* | Horizontal-component definitions, see waveform_features.csv |
 | sa_g_0_1s ... sa_g_2_0s, arias_intensity_ms, cav_ms, duration_5_95_sec | Engineering features, see waveform_features.csv |
 | fas_dominant_freq_hz, fas_mean_freq_hz | Fourier spectrum summary |
 | p_pick_time, s_pick_time, p_pick_confidence, s_pick_confidence | Phase picks |

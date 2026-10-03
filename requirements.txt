@@ -5,4 +5,5 @@ pandas>=2.0
 pyarrow>=14.0        # parquet okuma/yazma (pandas'tan daha az bellek kullanır)
 duckdb>=0.10         # disk-üzerinde SQL sorguları, büyük CSV/parquet'leri RAM'e yüklemeden filtrelemek için
 tqdm>=4.66           # ilerleme çubuğu
+scipy>=1.10          # tepki spektrumu integrasyonu (enrich_waveforms.py); obspy zaten gerektiriyor, burada açıkça belirtiliyor
 obspy>=1.4           # FDSN/EIDA istasyon ve dalga formu erişimi (LGPL v3 - kütüphane olarak kullanımı serbest)

@@ -10,7 +10,9 @@ model eğitir. Amaç iki şey:
 Model: klasik zayıflama (attenuation) ilişkisinin basitleştirilmiş bir
 hali - log10(PGA), büyüklük ve log10(mesafe)'nin doğrusal bir
 fonksiyonu olarak modelleniyor (bkz. Boore-Atkinson tarzı GMPE'lerin
-temel formu). Ekstra bağımlılık (scikit-learn vb.) gerektirmemesi için
+temel formu). Hedef, GMPE'lerin de kullandığı yönelimden bağımsız yatay
+tanım olan RotD50 PGA (`pga_rotd50_g`); düşey bileşeni de içerebilen
+tek bileşenli `pga_g` değil. Ekstra bağımlılık (scikit-learn vb.) gerektirmemesi için
 katsayılar `numpy.linalg.lstsq` ile kapalı-form en küçük kareler
 çözümüyle bulunuyor.
 
@@ -29,14 +31,15 @@ import pandas as pd
 BENCH_DIR = Path("benchmarks/ground_motion")
 
 FEATURES = ["magnitude", "log_hypocentral_km", "log_vs30"]
+TARGET = "pga_rotd50_g"
 
 
 def _prepare(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.dropna(subset=["magnitude", "hypocentral_distance_km", "vs30_ms", "pga_g"]).copy()
-    df = df[df["pga_g"] > 0]  # log10 tanımsız, PGA=0 zaten fiziksel olarak anlamsız
+    df = df.dropna(subset=["magnitude", "hypocentral_distance_km", "vs30_ms", TARGET]).copy()
+    df = df[df[TARGET] > 0]  # log10 tanımsız, PGA=0 zaten fiziksel olarak anlamsız
     df["log_hypocentral_km"] = np.log10(df["hypocentral_distance_km"])
     df["log_vs30"] = np.log10(df["vs30_ms"])
-    df["log_pga_g"] = np.log10(df["pga_g"])
+    df["log_pga_g"] = np.log10(df[TARGET])
     return df
 
 
@@ -63,6 +66,7 @@ def main():
 
     coefs = _fit_ols(train)
     b_mag, b_logdist, b_logvs30, intercept = coefs
+    print(f"Hedef: {TARGET}")
     print("Model: log10(PGA_g) = "
           f"{b_mag:.4f}*M + {b_logdist:.4f}*log10(R_hipo) + "
           f"{b_logvs30:.4f}*log10(Vs30) + {intercept:.4f}")
