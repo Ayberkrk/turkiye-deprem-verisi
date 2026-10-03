@@ -154,6 +154,8 @@ def test_waveform_file_count_check_mismatch(tmp_path, clean_events):
 def clean_event_station():
     return pd.DataFrame(
         {
+            "event_id": ["ev1"],
+            "station": ["KHMN"],
             "event_latitude": [39.0],
             "event_longitude": [35.0],
             "station_latitude": [39.05],
@@ -175,6 +177,17 @@ def test_event_station_geometry_checks_catches_stale_distance(clean_event_statio
     results = event_station_geometry_checks(broken)
     condition, _ = result_for(results, "event-station epicentral mesafesi koordinatlarla tutarlı (<=1km fark)")
     assert bool(condition) is False
+
+
+def test_event_station_geometry_checks_catches_duplicate_event_station_pair(clean_event_station):
+    # Aynı dalga formu iki kayıt olarak sayılırsa benchmark'ta aynı
+    # örnek farklı bölmelere düşebilir.
+    broken = pd.concat([clean_event_station, clean_event_station], ignore_index=True)
+    condition, detail = result_for(
+        event_station_geometry_checks(broken), "event-station tablosunda her (event_id, station) çifti tek satır"
+    )
+    assert not condition
+    assert "1" in detail
 
 
 def test_event_station_geometry_checks_missing_table_fails():

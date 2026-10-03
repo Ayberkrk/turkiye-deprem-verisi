@@ -10,9 +10,8 @@ verisini birleştiren en kapsamlı katalog) ve EMSC aynı zaman/bölge için
 çok daha fazla olay bildiriyor (örnek: 2023-02-06 tek günü için
 USGS 225, EMSC 369, ISC 613 olay).
 
-Eşleştirme yöntemi (v2): tüm kaynaklardan gelen olaylar zamana göre
-sıralanır. Bir olay, açık bir kümeye şu koşulların hepsi sağlanırsa
-katılabilir:
+Eşleştirme yöntemi (v3): farklı kaynaklardan gelen iki olay şu
+koşulların hepsi sağlanırsa aynı deprem adayıdır:
   - zaman farkı <= 30 saniye
   - konum farkı <= büyüklüğe göre ölçeklenen eşik (50-150km arası;
     büyük depremlerin konum belirsizliği/farklı ağların hız modeli
@@ -25,8 +24,10 @@ katılabilir:
     yoğun artçı dizilerinde iki farklı fiziksel olay olma ihtimali
     yüksektir - v1'deki en büyük hata kaynağı buydu)
 
-Birden fazla aday küme uyuyorsa, zaman/mesafe/büyüklük farkının en küçük
-olduğu (en iyi eşleşen) küme seçilir. Her küme için bir `dedup_confidence`
+Aday çiftler en iyi eşleşenden (zaman/mesafe/büyüklük farkı en küçük
+olandan) başlanarak birleştirilir (bkz. `best_first_clusters`); v2'deki
+zaman sırasıyla açgözlü atama, aynı depremi iki ayrı olay olarak
+bırakabiliyordu. Her küme için bir `dedup_confidence`
 (0-1) skoru üretilir; tek kaynaktan bildirilmiş (eşleşmesi gerekmeyen)
 kümeler için bu değer 1.0'dır.
 
@@ -104,63 +105,87 @@ def fetch_source(source_name: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def match_score(dt_sec: float, distance_km: float, dmag: float, threshold_km: float) -> float:
+    """0-1 arası eşleşme skoru; düşük fark = yüksek skor."""
+    return (
+        0.4 * (1 - dt_sec / TIME_WINDOW_SEC)
+        + 0.4 * (1 - distance_km / threshold_km)
+        + 0.2 * (1 - dmag / MAX_MAGNITUDE_DIFF)
+    )
+
+
+def candidate_pairs(times_sec, lats, lons, mags, sources):
+    """Aynı deprem olabilecek tüm (skor, i, j) çiftleri: farklı kaynaktan,
+    zaman/mesafe/büyüklük eşiklerinin hepsini sağlayan olaylar.
+    times_sec artan sıralı olmalı."""
+    n = len(times_sec)
+    pairs = []
+    for i in range(n):
+        j = i + 1
+        while j < n and times_sec[j] - times_sec[i] <= TIME_WINDOW_SEC:
+            dmag = abs(mags[i] - mags[j])
+            if sources[i] != sources[j] and dmag <= MAX_MAGNITUDE_DIFF:
+                thresh = distance_threshold_km(max(mags[i], mags[j]))
+                d = haversine_km(lats[i], lons[i], lats[j], lons[j])
+                if d <= thresh:
+                    pairs.append((match_score(times_sec[j] - times_sec[i], d, dmag, thresh), i, j))
+            j += 1
+    return pairs
+
+
+def best_first_clusters(times_sec, sources, pairs) -> np.ndarray:
+    """Aday çiftleri en yüksek skordan başlayarak birleştirir ve her olay
+    için bir küme numarası döndürür.
+
+    Olayları zaman sırasıyla işleyip o an açık olan en iyi kümeye katmak
+    (v2), gerçek eşi birkaç milisaniye sonra gelecek bir olayı önce zayıf
+    eşleşen bir kümeye bağlayabiliyordu; gerçek eş de "aynı kaynaktan
+    ikinci olay giremez" kuralına takılıp ayrı bir deprem olarak
+    kalıyordu. En iyi eşleşmeler önce birleştirildiğinde zayıf bir
+    eşleşme güçlü olanın yerini alamaz.
+
+    İki küme, birleşince aynı kaynaktan iki olay içerecekse ya da zaman
+    aralığı TIME_WINDOW_SEC'i aşacaksa birleştirilmez."""
+    n = len(times_sec)
+    parent = list(range(n))
+    cluster_sources = [{src} for src in sources]
+    t_min = list(times_sec)
+    t_max = list(times_sec)
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    # Eşit skorlarda sonuç girdi sırasına bağlı kalmasın diye (i, j) ikincil anahtar.
+    for _, i, j in sorted(pairs, key=lambda pair: (-pair[0], pair[1], pair[2])):
+        a, b = find(i), find(j)
+        if a == b or cluster_sources[a] & cluster_sources[b]:
+            continue
+        if max(t_max[a], t_max[b]) - min(t_min[a], t_min[b]) > TIME_WINDOW_SEC:
+            continue
+        parent[b] = a
+        cluster_sources[a] |= cluster_sources[b]
+        t_min[a], t_max[a] = min(t_min[a], t_min[b]), max(t_max[a], t_max[b])
+
+    return np.array([find(x) for x in range(n)])
+
+
 def deduplicate(all_events: pd.DataFrame) -> pd.DataFrame:
     all_events = all_events.copy()
     all_events["time_utc"] = pd.to_datetime(all_events["time_utc"], utc=True)
     all_events = all_events.sort_values("time_utc").reset_index(drop=True)
 
-    n = len(all_events)
     times = all_events["time_utc"].values
     lats = all_events["latitude"].values
     lons = all_events["longitude"].values
     mags = all_events["magnitude"].values
     sources = all_events["source"].values
 
-    cluster_id = np.full(n, -1)
-    # Her açık küme için: temsilci (ilk giren) satırın index'i ve o kümede
-    # şu ana kadar görülen kaynak isimleri (aynı kaynaktan ikinci bir olayı
-    # o kümeye katmamak için).
-    cluster_anchor = {}
-    cluster_sources = {}
-    open_cluster_ids = []
-    next_cluster = 0
-
-    for i in range(n):
-        t = times[i]
-        open_cluster_ids = [
-            cid for cid in open_cluster_ids
-            if (t - times[cluster_anchor[cid]]) / np.timedelta64(1, "s") <= TIME_WINDOW_SEC
-        ]
-
-        best_cid, best_score = None, -1.0
-        for cid in open_cluster_ids:
-            if sources[i] in cluster_sources[cid]:
-                continue
-            ridx = cluster_anchor[cid]
-            d = haversine_km(lats[i], lons[i], lats[ridx], lons[ridx])
-            dmag = abs(mags[i] - mags[ridx])
-            thresh = distance_threshold_km(max(mags[i], mags[ridx]))
-            if d > thresh or dmag > MAX_MAGNITUDE_DIFF:
-                continue
-            dt = abs((t - times[ridx]) / np.timedelta64(1, "s"))
-            # 0-1 arası, düşük fark = yüksek skor
-            score = (
-                0.4 * (1 - dt / TIME_WINDOW_SEC)
-                + 0.4 * (1 - d / thresh)
-                + 0.2 * (1 - dmag / MAX_MAGNITUDE_DIFF)
-            )
-            if score > best_score:
-                best_score, best_cid = score, cid
-
-        if best_cid is None:
-            best_cid = next_cluster
-            next_cluster += 1
-            cluster_anchor[best_cid] = i
-            cluster_sources[best_cid] = set()
-            open_cluster_ids.append(best_cid)
-
-        cluster_sources[best_cid].add(sources[i])
-        cluster_id[i] = best_cid
+    times_sec = times.astype("datetime64[ns]").astype("int64") / 1e9
+    pairs = candidate_pairs(times_sec, lats, lons, mags, sources)
+    cluster_id = best_first_clusters(times_sec, sources, pairs)
 
     all_events["cluster_id"] = cluster_id
     all_events["source_priority"] = all_events["source"].map(SOURCE_PRIORITY)

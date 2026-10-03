@@ -116,7 +116,10 @@ def event_station_geometry_checks(event_station):
         event_station["station_latitude"], event_station["station_longitude"],
     )
     diff = (recomputed - event_station["epicentral_distance_km"]).abs()
+    duplicated_pairs = int(event_station.duplicated(["event_id", "station"]).sum())
     return [
+        ("event-station tablosunda her (event_id, station) çifti tek satır",
+         duplicated_pairs == 0, f"{duplicated_pairs} yinelenen satır"),
         ("event-station epicentral mesafesi koordinatlarla tutarlı (<=1km fark)",
          (diff <= 1.0).all(), f"maksimum fark={diff.max():.3f}km"),
         ("hypocentral mesafe >= epicentral mesafe",

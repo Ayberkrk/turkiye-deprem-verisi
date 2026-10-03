@@ -22,13 +22,26 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from event_ids import remap_to_representative, representative_id_lookup
+
 PROCESSED = Path("data/processed")
+
+
+def load_isc_picks() -> pd.DataFrame:
+    """ISC uzman pick'lerini, olay kimlikleri güncel temsilci kimliğe
+    eşlenmiş olarak yükler (pick'ler çekildikleri andaki kimlikle
+    kayıtlı; deduplikasyon sonradan değişmiş olabilir)."""
+    picks = pd.read_csv(PROCESSED / "isc_analyst_picks.csv")
+    id_map_path = PROCESSED / "event_id_cluster_map.csv"
+    if id_map_path.exists():
+        picks = remap_to_representative(picks, representative_id_lookup(pd.read_csv(id_map_path)))
+    return picks
 
 
 def load_matched_pairs(phase: str) -> pd.DataFrame:
     """Bir faz tipi (P veya S) için otomatik pick ile ISC uzman pick'ini
     aynı (event_id, station) çifti üzerinden eşleştirir."""
-    picks = pd.read_csv(PROCESSED / "isc_analyst_picks.csv")
+    picks = load_isc_picks()
     picks = picks[picks["phase_type"] == phase][["event_id", "station", "pick_time"]]
     picks = picks.rename(columns={"pick_time": "isc_pick_time"})
 

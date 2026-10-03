@@ -14,10 +14,10 @@ noktası sunmak.
 
 | Kaynak | İçerik | Kapsam |
 |---|---|---|
-| USGS + EMSC + ISC (deduplike) | Deprem kataloğu (konum, büyüklük, derinlik, zaman) | **84.100 benzersiz deprem**, 1990-günümüz, Türkiye sınırları |
+| USGS + EMSC + ISC (deduplike) | Deprem kataloğu (konum, büyüklük, derinlik, zaman) | **84.080 benzersiz deprem**, 1990-günümüz, Türkiye sınırları |
 | KOERI / ORFEUS-EIDA | İstasyon envanteri + talebe bağlı ham dalga formu | KOERI ağının tamamı (277 istasyon) |
 | USGS Global Vs30 Mosaic | Zemin sınıfı (Vs30, NEHRP A-E) | 277/277 istasyon için |
-| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog üzerinden) | Çok bileşenli miniSEED kayıtları | **5.413 dosya, 1.104 benzersiz olay için en az 1 gerçek kayıt** |
+| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog üzerinden) | Çok bileşenli miniSEED kayıtları | **5.413 dosya, 1.098 benzersiz olay için en az 1 gerçek kayıt** |
 | Sinyal öznitelikleri + mühendislik metrikleri + kalite kontrolü | PGA/PGV/SNR/faz + Sa(T)/Arias/CAV/D5-95 + QC | Tüm indirilen dosyalar için, `waveform_features.csv` |
 | ISC uzman (analyst-reviewed) P/S pick'leri | Gerçek dalga formu olan olaylar için, mevcut olduğu kadar | **185 olay, 384 pick**, `isc_analyst_picks.csv` |
 | Olay-istasyon tablosu | Her deprem-istasyon çifti için ayrı satır (mesafe+PGA tutarlı) | `event_station_table.csv` |
@@ -55,20 +55,24 @@ yapamıyor.
 
 ## Bilinen sınırlamalar
 
-- **Aynı deprem katalogda iki satır olarak kalabiliyor.** Deduplikasyon
-  olayları zaman sırasıyla kümelediği için, bir kayıt önce kötü eşleşen
-  bir kümeye girdiğinde gerçek eşi ayrı bir olay olarak kalabiliyor
-  (5 sn ve 100 km içinde 200 civarı olay çifti). Dalga formu indirilen
-  olaylarda bu, aynı kaydın iki farklı `event_id` altında görünmesine
-  yol açıyor: `ground_motion` benchmark'ında 60 kayıt bu durumda,
-  34'ü farklı bölmelere düşmüş (test setindeki 353 kaydın 7'sinin eşi
-  train/val'de).
-- **Artçı dizilerinde kayıt penceresi başka depremleri de içerebiliyor.**
-  Pencere 210 sn; yoğun dizilerde (özellikle 2023 ve 2025) aynı
-  pencereye birden fazla olay düşüyor ve tepe değer etiketlenen olaya
-  ait olmayabiliyor. `window_max_magnitude`, pencereye düşen en büyük
-  katalog depremini verir; etiketteki büyüklükten belirgin şekilde
-  büyükse (103 kayıtta en az 0.5 fark) kayıt dikkatle kullanılmalı.
+- **Aynı kaynağın iki kez bildirdiği depremler birleştirilmiyor.**
+  Deduplikasyon, aynı kaynaktan gelen iki olayı hiçbir zaman aynı
+  kümeye koymuyor (yoğun artçı dizilerinde gerçek iki olayı yutmamak
+  için). Bir kurum aynı depremi iki ayrı kayıtla verdiğinde (özellikle
+  henüz gözden geçirilmemiş güncel ISC kayıtlarında) bunlar iki olay
+  olarak kalıyor: dalga formu olan olaylar arasında origin zamanı bir
+  diğerinden en fazla 5 sn farklı 12 olay var.
+- **Artçı dizilerinde kayıt pencereleri örtüşüyor.** Pencere 210 sn;
+  yoğun dizilerde (özellikle 2023 ve 2025) art arda gelen olayların
+  pencereleri aynı örnekleri paylaşıyor ve tepe değer etiketlenen olaya
+  ait olmayabiliyor. Mühendislik için kullanılabilir 2.152 kaydın
+  346'sının penceresi aynı istasyondaki başka bir olayın kaydıyla
+  örtüşüyor; `ground_motion` benchmark'ında bunların 234'ü farklı
+  bölmelere düşmüş durumda (test setindeki 349 kaydın 38'i). Yani olay
+  bazlı bölme bu kayıtlar için sızıntıyı önlemiyor.
+  `window_max_magnitude`, pencereye düşen en büyük katalog depremini
+  verir; etiketteki büyüklükten belirgin şekilde büyükse kayıt dikkatle
+  kullanılmalı.
 - USGS kataloğu, yerel ağların kendi kataloglarına göre küçük büyüklükteki
   depremleri daha az yakalayabilir (küresel ağın hassasiyeti yerel
   ağlardan düşüktür). EMSC/ISC eklenmesi bu boşluğu büyük ölçüde kapatıyor.
@@ -88,7 +92,7 @@ yapamıyor.
   gelen iki ayrı olay hiçbir zaman aynı kümeye birleştirilmiyor (bkz.
   `scripts/expand_catalog.py`). Her küme için bir `dedup_confidence`
   (0-1) skoru üretiliyor; düşük skorlu (yoğun artçı dizilerinde,
-  <0.5 güvenli) küme sayısı ~57/84.100 seviyesinde. Sıfır hata payı iddia
+  <0.5 güvenli) küme sayısı 51/84.080 seviyesinde. Sıfır hata payı iddia
   edilmiyor ama v1'e göre (o zaman ~424 kümede risk vardı) belirgin bir
   iyileşme sağlandı.
 - mw_estimate sütunundaki dönüşüm formülü Marmara Bölgesi için türetilmiş

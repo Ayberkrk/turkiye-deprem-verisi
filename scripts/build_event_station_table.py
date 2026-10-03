@@ -23,6 +23,11 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build_dataset import estimate_mw, magnitude_scale_group  # noqa: E402
+from event_ids import (  # noqa: E402
+    collapse_duplicate_station_records,
+    remap_to_representative,
+    representative_id_lookup,
+)
 from geo import haversine_km  # noqa: E402
 
 PROCESSED = Path("data/processed")
@@ -79,11 +84,13 @@ def main():
     # Waveform dosyaları, deduplikasyon öncesi (ör. USGS) kimlikleriyle
     # diske yazılmış olabilir. build_dataset.py'deki gibi, hayatta kalan
     # temsilci kimliğe eşliyoruz.
+    features = features.assign(file_event_id=features["event_id"])
     if id_map_path.exists():
-        id_map = pd.read_csv(id_map_path)
-        usgs_map = id_map[id_map["source"] == "usgs"].set_index("source_event_id")["representative_event_id"]
-        features = features.copy()
-        features["event_id"] = features["event_id"].map(usgs_map).fillna(features["event_id"])
+        features = remap_to_representative(features, representative_id_lookup(pd.read_csv(id_map_path)))
+    n_before = len(features)
+    features = collapse_duplicate_station_records(features, "file_event_id").drop(columns="file_event_id")
+    if len(features) < n_before:
+        print(f"  Aynı (olay, istasyon) için birden fazla dosya: {n_before - len(features)} yinelenen kayıt çıkarıldı")
 
     events_cols = ["event_id", "latitude", "longitude", "depth_km", "magnitude", "mag_type", "time_utc"]
     if "mw_estimate" not in events.columns:

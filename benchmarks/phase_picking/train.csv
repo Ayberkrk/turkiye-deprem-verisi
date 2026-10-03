@@ -2,8 +2,6 @@ event_id,station,file,p_pick_time,s_pick_time,p_pick_confidence,s_pick_confidenc
 quakeml:eu.emsc/event/20140524_0000027,GELI,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20140524_0000027_GELI.mseed,2014-05-24T09:31:38.240000Z,2014-05-24T09:32:09.430000Z,0.097,0.008
 quakeml:eu.emsc/event/20140524_0000027,ERIK,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20140524_0000027_ERIK.mseed,2014-05-24T09:31:20.240000Z,2014-05-24T09:31:55.350000Z,0.063,0.097
 quakeml:eu.emsc/event/20140524_0000027,GADA,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20140524_0000027_GADA.mseed,2014-05-24T09:31:36.580000Z,2014-05-24T09:32:01.560000Z,0.132,0.134
-quakeml:eu.emsc/event/20151009_0000049,TOKT,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20151009_0000049_TOKT.mseed,2015-10-09T14:39:24.420000Z,,0.468,
-quakeml:eu.emsc/event/20151009_0000049,RSDY,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20151009_0000049_RSDY.mseed,2015-10-09T14:39:27.220000Z,,0.563,
 quakeml:eu.emsc/event/20170721_0000092,DAT,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20170721_0000092_DAT.mseed,2017-07-21T05:05:30.820000Z,,0.355,
 quakeml:eu.emsc/event/20201030_0000093,BLCB,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20201030_0000093_BLCB.mseed,2020-10-30T11:56:05.060000Z,,0.08,
 quakeml:eu.emsc/event/20201030_0000093,KRBN,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20201030_0000093_KRBN.mseed,2020-10-30T11:56:15.590000Z,2020-10-30T11:56:27.510000Z,0.332,0.265
@@ -29,10 +27,6 @@ smi:ISC/evid=618707167,GURO,data/processed/waveforms/smi-c-ISC-s-evid-e-61870716
 smi:ISC/evid=625729748,CEYT,data/processed/waveforms/smi-c-ISC-s-evid-e-625729748_CEYT.mseed,2023-02-06T01:27:09.810000Z,2023-02-06T01:27:20.270000Z,0.147,0.156
 smi:ISC/evid=625729748,CMRD,data/processed/waveforms/smi-c-ISC-s-evid-e-625729748_CMRD.mseed,2023-02-06T01:28:46.190000Z,2023-02-06T01:28:48.200000Z,0.244,0.217
 smi:ISC/evid=625729748,KHMN,data/processed/waveforms/smi-c-ISC-s-evid-e-625729748_KHMN.mseed,2023-02-06T01:28:24.840000Z,,0.04,
-smi:ISC/evid=625729916,DARE,data/processed/waveforms/smi-c-ISC-s-evid-e-625729916_DARE.mseed,2023-02-06T10:51:41.960000Z,,0.34,
-smi:ISC/evid=625729916,TUNC,data/processed/waveforms/smi-c-ISC-s-evid-e-625729916_TUNC.mseed,2023-02-06T10:52:21.750000Z,,0.305,
-smi:ISC/evid=625730003,DARE,data/processed/waveforms/smi-c-ISC-s-evid-e-625730003_DARE.mseed,2023-02-06T15:14:35.500000Z,,0.39,
-smi:ISC/evid=625730003,KMRS,data/processed/waveforms/smi-c-ISC-s-evid-e-625730003_KMRS.mseed,2023-02-06T15:14:48.120000Z,2023-02-06T15:14:59.670000Z,0.53,0.11
 smi:ISC/evid=642689049,DARE,data/processed/waveforms/smi-c-ISC-s-evid-e-642689049_DARE.mseed,2023-02-06T10:33:55.620000Z,,0.015,
 smi:ISC/evid=642689049,KMRS,data/processed/waveforms/smi-c-ISC-s-evid-e-642689049_KMRS.mseed,2023-02-06T10:33:53.300000Z,2023-02-06T10:34:53.130000Z,0.027,0.03
 smi:ISC/evid=642689049,TUNC,data/processed/waveforms/smi-c-ISC-s-evid-e-642689049_TUNC.mseed,2023-02-06T10:36:29.530000Z,,0.001,
@@ -641,6 +635,8 @@ us6000jnt5,SARI,data/processed/waveforms/us6000jnt5_SARI.mseed,2023-02-06T10:47:
 us6000jnt5,KMRS,data/processed/waveforms/us6000jnt5_KMRS.mseed,2023-02-06T10:47:01.430000Z,2023-02-06T10:47:59.770000Z,0.006,0.177
 us6000jnt5,DARE,data/processed/waveforms/us6000jnt5_DARE.mseed,2023-02-06T10:47:29.510000Z,,0.037,
 us6000jnt5,CMRD,data/processed/waveforms/us6000jnt5_CMRD.mseed,2023-02-06T10:48:29.650000Z,2023-02-06T10:48:31.030000Z,0.043,0.205
+us6000jnt6,DARE,data/processed/waveforms/smi-c-ISC-s-evid-e-642689053_DARE.mseed,2023-02-06T10:55:24.180000Z,,0.157,
+us6000jnt6,GUMT,data/processed/waveforms/smi-c-ISC-s-evid-e-642689053_GUMT.mseed,2023-02-06T10:55:37.280000Z,,0.056,
 us6000jntk,DARE,data/processed/waveforms/us6000jntk_DARE.mseed,2023-02-06T13:03:26.950000Z,,0.394,
 us6000jntk,KMRS,data/processed/waveforms/us6000jntk_KMRS.mseed,2023-02-06T13:03:38.940000Z,2023-02-06T13:04:43.600000Z,0.261,0.011
 us6000jntl,GAZ,data/processed/waveforms/us6000jntl_GAZ.mseed,2023-02-06T13:14:38.920000Z,,0.121,

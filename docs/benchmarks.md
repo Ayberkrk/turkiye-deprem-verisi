@@ -43,7 +43,7 @@ holdout da üretiliyor:
   geleceğe genelleyip genelleyemediğini test eder. **Bilinen dengesizlik**:
   gerçek dalga formu arşivinin büyük kısmı 2020 sonrası (özellikle 2023
   Kahramanmaraş depremi dizisi) yoğunlaştığı için bu bölmede test seti
-  train'den büyük çıkıyor (train≈625, test≈1544). Bu, arşivin doğal
+  train'den büyük çıkıyor (train≈623, test≈1529). Bu, arşivin doğal
   zaman dağılımını yansıtıyor.
 
 ## 2. phase_picking
@@ -140,9 +140,9 @@ kıyas noktası vermek - yayın kalitesinde bir GMPE değildir.
 python notebooks/02_ground_motion_baseline.py
 ```
 
-Güncel sonuç (test bölmesi, n=353): RMSE(log10 g) ≈ 0.42 (yaklaşık
+Güncel sonuç (test bölmesi, n=349): RMSE(log10 g) ≈ 0.42 (yaklaşık
 2.7x'lik bir faktör hatası), R² ≈ 0.67 - sadece train ortalamasını
-tahmin eden naif bir modelin RMSE'sinden (≈0.74) belirgin şekilde düşük. Bu, üç değişkenli
+tahmin eden naif bir modelin RMSE'sinden (≈0.73) belirgin şekilde düşük. Bu, üç değişkenli
 basit bir doğrusal modelin bile PGA'nın büyük kısmını açıklayabildiğini,
 yani split'lerin öğrenilebilir bir ilişki taşıdığını gösteriyor.
 
@@ -159,14 +159,14 @@ python notebooks/03_ground_motion_randomforest.py
 
 | split | model | RMSE(log10 g) | R² |
 |---|---|---|---|
-| test | doğrusal (OLS) | 0.421 | 0.672 |
-| test | RandomForest | 0.405 | 0.697 |
+| test | doğrusal (OLS) | 0.421 | 0.670 |
+| test | RandomForest | 0.403 | 0.697 |
 
 RandomForest belirgin ama dramatik olmayan bir iyileşme sağlıyor (~4%
 daha düşük RMSE) - yani doğrusal model verideki ilişkinin çoğunu zaten
 yakalamış, ama tamamını değil; daha esnek modeller için hâlâ bir miktar
 pay var. Öznitelik önemine göre mesafe (`log_hypocentral_km`, ~0.74)
-büyüklükten (~0.18) ve Vs30'dan (~0.09) çok daha baskın - klasik
+büyüklükten (~0.17) ve Vs30'dan (~0.09) çok daha baskın - klasik
 azalım ilişkisiyle (mesafe arttıkça PGA hızla düşer) fiziksel olarak
 tutarlı.
 

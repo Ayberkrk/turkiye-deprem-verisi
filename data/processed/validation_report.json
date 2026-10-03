@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-03T09:15:50.196201+00:00",
-  "total_events": 84100,
+  "generated_at": "2026-10-03T09:21:51.328444+00:00",
+  "total_events": 84080,
   "total_waveform_files": 5413,
   "checks_failed": 0,
   "checks": [
@@ -96,6 +96,11 @@
     },
     {
       "check": "Tüm dalga formu dosyaları okunabilir",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "check": "event-station tablosunda her (event_id, station) çifti tek satır",
       "status": "OK",
       "detail": ""
     },
