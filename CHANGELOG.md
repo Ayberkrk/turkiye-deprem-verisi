@@ -3,6 +3,15 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.15 (yayınlanmadı)
+
+- Hugging Face'te `datasets.load_dataset` ve veri görüntüleyicisi için
+  config'ler tanımlandı: `catalog`, `event_station`, `ground_motion`,
+  `phase_picking`, `early_warning`. Hub tek veri setinde parquet ve CSV
+  config'lerini birlikte okuyamadığı için, CSV tabloların parquet
+  kopyalarını üreten `scripts/export_hf_parquet.py` eklendi (bölmeler
+  arası şema hizalamasıyla; asıl CSV dosyaları değişmedi).
+
 ## v5.14
 
 - Sürüm numaraları eşitlendi: `pyproject.toml` (0.1.0 -> 5.14.0) ve
