@@ -85,6 +85,11 @@ def build_ground_motion_task(table: pd.DataFrame):
     target_cols = ["pga_g", "pgv_cms", "sa_g_0_1s", "sa_g_0_2s", "sa_g_0_5s",
                     "sa_g_1_0s", "sa_g_2_0s", "arias_intensity_ms", "cav_ms",
                     "duration_5_95_sec"]
+    # Yönelimden bağımsız yatay tanımlar (GMPE'lerle kıyaslanabilir olan
+    # bunlar); eski bir event_station_table ile çalışırken yoksa atlanır.
+    target_cols += [c for c in ["pga_rotd50_g", "pga_geomean_g", "pgv_rotd50_cms", "pgv_geomean_cms",
+                                "sa_rotd50_g_0_1s", "sa_rotd50_g_0_2s", "sa_rotd50_g_0_5s",
+                                "sa_rotd50_g_1_0s", "sa_rotd50_g_2_0s"] if c in df.columns]
     df = df[feature_cols + target_cols + ["time_utc"]].dropna(subset=["pga_g", "epicentral_distance_km"])
 
     out_dir = BENCH_DIR / "ground_motion"

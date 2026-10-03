@@ -21,6 +21,13 @@ mevcutların bölmesi değişmez. Oranlar: %70 train, %15 val, %15 test.
 **Hedef**: PGA, PGV, Sa(0.1/0.2/0.5/1.0/2.0s), Arias intensity, CAV,
 anlamlı sarsıntı süresi (D5-95)
 
+**Hangi PGA?** Önerilen hedef, yönelimden bağımsız yatay tanım olan
+`pga_rotd50_g` (ve `pgv_rotd50_cms`, `sa_rotd50_g_*`): yayınlanmış
+GMPE'ler yatay harekete göre kalibre edildiği için onlarla doğrudan
+kıyaslanabilen bunlar. `pga_g`/`sa_g_*` düşey dahil en büyük genlikli tek
+bileşenden geliyor ve geriye dönük uyumluluk için duruyor. Referans
+modeller ve skor tablosu `pga_rotd50_g` üzerinde (bkz. `docs/schema.md`).
+
 Sadece `usable_for_engineering=True` (güçlü hareket sensöründen gelen,
 kritik QC sorunu olmayan) kayıtlar kullanılıyor - broadband'den düşülmüş
 PGA değerleri bu görevde YOK.
@@ -123,7 +130,7 @@ python notebooks/05_early_warning_baseline.py
 
 `notebooks/02_ground_motion_baseline.py`, `ground_motion` bölmeleri
 üzerinde ek bağımlılık gerektirmeyen basit bir zayıflama (attenuation)
-modeli eğitip test ediyor: `log10(PGA_g)`, büyüklük + `log10(hiposantral
+modeli eğitip test ediyor: `log10(PGA_g)` (RotD50, `pga_rotd50_g`), büyüklük + `log10(hiposantral
 mesafe)` + `log10(Vs30)`'un doğrusal bir fonksiyonu olarak modelleniyor
 (kapalı-form en küçük kareler, `numpy.linalg.lstsq`). Amaç, split'lerin
 gerçekten anlamlı bir sinyal taşıdığını göstermek ve yeni gelenlere bir
@@ -133,9 +140,9 @@ kıyas noktası vermek - yayın kalitesinde bir GMPE değildir.
 python notebooks/02_ground_motion_baseline.py
 ```
 
-Güncel sonuç (test bölmesi): RMSE(log10 g) ≈ 0.42 (yaklaşık 2.6x'lik bir
-faktör hatası), R² ≈ 0.66 - sadece train ortalamasını tahmin eden naif
-bir modelin RMSE'sinden (≈0.72) belirgin şekilde düşük. Bu, üç değişkenli
+Güncel sonuç (test bölmesi, n=353): RMSE(log10 g) ≈ 0.42 (yaklaşık
+2.7x'lik bir faktör hatası), R² ≈ 0.67 - sadece train ortalamasını
+tahmin eden naif bir modelin RMSE'sinden (≈0.73) belirgin şekilde düşük. Bu, üç değişkenli
 basit bir doğrusal modelin bile PGA'nın büyük kısmını açıklayabildiğini,
 yani split'lerin öğrenilebilir bir ilişki taşıdığını gösteriyor.
 
@@ -152,14 +159,14 @@ python notebooks/03_ground_motion_randomforest.py
 
 | split | model | RMSE(log10 g) | R² |
 |---|---|---|---|
-| test | doğrusal (OLS) | 0.419 | 0.657 |
-| test | RandomForest | 0.392 | 0.701 |
+| test | doğrusal (OLS) | 0.424 | 0.666 |
+| test | RandomForest | 0.409 | 0.689 |
 
-RandomForest belirgin ama dramatik olmayan bir iyileşme sağlıyor (~6%
+RandomForest belirgin ama dramatik olmayan bir iyileşme sağlıyor (~4%
 daha düşük RMSE) - yani doğrusal model verideki ilişkinin çoğunu zaten
 yakalamış, ama tamamını değil; daha esnek modeller için hâlâ bir miktar
-pay var. Öznitelik önemine göre mesafe (`log_hypocentral_km`, ~0.73)
-büyüklükten (~0.17) ve Vs30'dan (~0.11) çok daha baskın - klasik
+pay var. Öznitelik önemine göre mesafe (`log_hypocentral_km`, ~0.74)
+büyüklükten (~0.18) ve Vs30'dan (~0.09) çok daha baskın - klasik
 azalım ilişkisiyle (mesafe arttıkça PGA hızla düşer) fiziksel olarak
 tutarlı.
 

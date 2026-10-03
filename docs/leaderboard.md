@@ -15,15 +15,17 @@ tabloya satırını ekle. Skorun tekrar üretilebilir olması için:
 
 ## ground_motion
 
-**Görev**: büyüklük + mesafe + Vs30 → log10(PGA_g). Metrik: RMSE
+**Görev**: büyüklük + mesafe + Vs30 → log10(PGA_g), hedef yönelimden
+bağımsız yatay PGA (`pga_rotd50_g`; v5.9 öncesi satırlar tek bileşenli
+`pga_g` üzerindeydi ve bu tabloyla kıyaslanamaz). Metrik: RMSE
 (log10 g birimiyle - düşük daha iyi) ve R² (yüksek daha iyi), test
 bölmesinde.
 
 | Model | RMSE (log10 g) | R² | Not | Kaynak |
 |---|---|---|---|---|
-| Naif (train ortalaması) | 0.717 | 0.000 | Girdi kullanmıyor, sadece referans | `notebooks/02_ground_motion_baseline.py` |
-| Doğrusal (OLS, 3 öznitelik) | 0.419 | 0.657 | Kapalı-form en küçük kareler, ek bağımlılık yok | `notebooks/02_ground_motion_baseline.py` |
-| RandomForest (3 öznitelik) | 0.392 | 0.701 | 200 ağaç, max_depth=8 | `notebooks/03_ground_motion_randomforest.py` |
+| Naif (train ortalaması) | 0.735 | 0.000 | Girdi kullanmıyor, sadece referans | `notebooks/02_ground_motion_baseline.py` |
+| Doğrusal (OLS, 3 öznitelik) | 0.424 | 0.666 | Kapalı-form en küçük kareler, ek bağımlılık yok | `notebooks/02_ground_motion_baseline.py` |
+| RandomForest (3 öznitelik) | 0.409 | 0.689 | 200 ağaç, max_depth=8 | `notebooks/03_ground_motion_randomforest.py` |
 
 ## phase_picking
 
