@@ -30,7 +30,7 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-from compare_picks_to_isc import summarize  # noqa: E402
+from compare_picks_to_isc import load_isc_picks, summarize  # noqa: E402
 
 BENCH_DIR = Path("benchmarks/phase_picking")
 PROCESSED = Path("data/processed")
@@ -62,7 +62,7 @@ def main():
     if not isc_picks_path.exists():
         print(f"{isc_picks_path} bulunamadı - önce `python scripts/fetch_isc_picks.py` çalıştırın.")
         return
-    isc_picks = pd.read_csv(isc_picks_path)
+    isc_picks = load_isc_picks()
 
     for split_name in ["train", "val", "test"]:
         split = pd.read_csv(BENCH_DIR / f"{split_name}.csv")

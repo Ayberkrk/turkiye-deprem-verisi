@@ -36,6 +36,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from event_ids import remap_to_representative, representative_id_lookup
 from geo import haversine_km
 
 PROCESSED = Path("data/processed")
@@ -147,21 +148,11 @@ def main():
     # (bkz. expand_catalog.py). Dalga formu dosyaları eski kimlikle diskte
     # durduğu için, sayım öncesi hayatta kalan kimliğe yeniden eşliyoruz.
     id_map_path = PROCESSED / "event_id_cluster_map.csv"
-    usgs_map = None
-    if id_map_path.exists():
-        id_map = pd.read_csv(id_map_path)
-        usgs_map = id_map[id_map["source"] == "usgs"].set_index("source_event_id")[
-            "representative_event_id"
-        ]
-
-    def remap_event_id(df):
-        if usgs_map is not None:
-            df["event_id"] = df["event_id"].map(usgs_map).fillna(df["event_id"])
-        return df
+    lookup = representative_id_lookup(pd.read_csv(id_map_path)) if id_map_path.exists() else None
 
     if waveform_log_path.exists():
         wf = pd.read_csv(waveform_log_path)
-        ok = remap_event_id(wf[wf["status"] == "ok"].copy())
+        ok = remap_to_representative(wf[wf["status"] == "ok"], lookup)
         counts = ok.groupby("event_id").size().rename("num_waveform_files")
         events = events.merge(counts, how="left", left_on="event_id", right_index=True)
         events["num_waveform_files"] = events["num_waveform_files"].fillna(0).astype(int)
@@ -171,7 +162,7 @@ def main():
         events["has_waveform"] = False
 
     if features_path.exists():
-        feat = remap_event_id(pd.read_csv(features_path))
+        feat = remap_to_representative(pd.read_csv(features_path), lookup)
 
         # max_pga_g/max_pgv_cms öncelikle "usable_for_engineering" olarak
         # işaretlenmiş (güçlü hareket sensöründen, QC sorunu olmayan)

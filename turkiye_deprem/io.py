@@ -56,7 +56,7 @@ def _require(path: Path) -> Path:
 
 
 def load_catalog(path: Path | str | None = None, data_dir: Path | str | None = None) -> pd.DataFrame:
-    """Ana veri setini yükler (84.100 olay): katalog + istasyon eşleştirmesi
+    """Ana veri setini yükler (84.080 olay): katalog + istasyon eşleştirmesi
     + zemin sınıfı + dalga formu öznitelikleri. Bkz. docs/schema.md.
     """
     path = Path(path) if path is not None else _resolve_processed_dir(data_dir) / "turkiye_deprem_veriseti_v3.parquet"

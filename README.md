@@ -14,12 +14,12 @@ Turkish earthquakes, and global waveform datasets like STEAD lack
 engineering-relevant fields (site classification, dense strong-motion
 coverage) for Turkey specifically.
 
-- **84,100 deduplicated earthquake events** (1990-present), merged from
+- **84,080 deduplicated earthquake events** (1990-present), merged from
   USGS + EMSC + ISC with a magnitude/distance/time-aware deduplication
   method (so the same quake reported by multiple agencies isn't counted
   twice) and a per-cluster confidence score.
 - **5,413 real multi-component acceleration/velocity waveform records**
-  (KOERI/ORFEUS-EIDA, M>=4.5, 1,104 unique events), with instrument
+  (KOERI/ORFEUS-EIDA, M>=4.5, 1,098 unique events), with instrument
   response removed and engineering features computed: PGA, PGV,
   pseudo-spectral acceleration Sa(T), Arias intensity, CAV, significant
   duration (peak and spectral values also as orientation-independent
@@ -76,10 +76,10 @@ Hub'da barındırılıyor, script'leri çalıştırmadan doğrudan indirebilirsi
 
 | Kaynak | Lisans | Durum |
 |---|---|---|
-| USGS + EMSC + ISC (deduplike deprem kataloğu) | Public Domain / açık FDSN | Dahil, **84.100 benzersiz deprem** |
+| USGS + EMSC + ISC (deduplike deprem kataloğu) | Public Domain / açık FDSN | Dahil, **84.080 benzersiz deprem** |
 | KOERI / ORFEUS-EIDA (istasyon + dalga formu) | Açık FDSN | Dahil, 277 istasyon |
 | USGS Global Vs30 Mosaic (zemin sınıfı) | Public Domain | Dahil, 277/277 istasyon |
-| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog) | Açık FDSN | Dahil, 5.413 dosya, 1.104 olay için |
+| KOERI ham dalga formu (M≥4.5, genişletilmiş katalog) | Açık FDSN | Dahil, 5.413 dosya, 1.098 olay için |
 | PGA/PGV/SNR/faz okuması + mühendislik öznitelikleri (Sa/Arias/CAV) + QC | Kendi hesaplamamız | Dahil |
 | ISC uzman (analyst-reviewed) P/S pick'leri | ISC Bulletin | Dahil, 185 olay/384 pick, `isc_analyst_picks.csv` |
 | Olay-istasyon tablosu (event-station) | Kendi hesaplamamız | Dahil, `event_station_table.csv` |
@@ -131,7 +131,7 @@ Ya da adım adım:
 
 ```bash
 python scripts/download_usgs.py       # USGS deprem kataloğu (Türkiye)
-python scripts/expand_catalog.py      # + EMSC/ISC ile genişletme ve deduplikasyon (84.100 olay)
+python scripts/expand_catalog.py      # + EMSC/ISC ile genişletme ve deduplikasyon (84.080 olay)
 python scripts/fetch_orfeus_eida.py   # KOERI istasyon listesi (+ --waveform ile örnek dalga formu)
 python scripts/fetch_vs30.py          # istasyonlara zemin sınıfı (Vs30) ekler
 python scripts/fetch_waveforms_bulk.py  # M>=4.5 depremler için gerçek dalga formu
@@ -161,7 +161,7 @@ pip install -e .
 ```python
 from turkiye_deprem import load_catalog, load_event_station_table, load_waveform_features
 
-df = load_catalog()                      # ana veri seti, 84.100 olay
+df = load_catalog()                      # ana veri seti, 84.080 olay
 event_station = load_event_station_table()  # PGA-mesafe gibi analizler için (bkz. docs/schema.md)
 ```
 

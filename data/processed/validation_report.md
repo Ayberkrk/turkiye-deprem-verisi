@@ -1,8 +1,8 @@
 # Veri Doğrulama Raporu
 
-Üretim zamanı: 2026-10-03T09:15:50.196201+00:00
+Üretim zamanı: 2026-10-03T09:21:51.328444+00:00
 
-Toplam olay: 84100, toplam dalga formu dosyası: 5413
+Toplam olay: 84080, toplam dalga formu dosyası: 5413
 
 | Kontrol | Durum | Detay |
 |---|---|---|
@@ -25,6 +25,7 @@ Toplam olay: 84100, toplam dalga formu dosyası: 5413
 | reported_by sütunu boş değil | OK |  |
 | Dalga formu dosyaları listelendiği kadar var | OK |  |
 | Tüm dalga formu dosyaları okunabilir | OK |  |
+| event-station tablosunda her (event_id, station) çifti tek satır | OK |  |
 | event-station epicentral mesafesi koordinatlarla tutarlı (<=1km fark) | OK |  |
 | hypocentral mesafe >= epicentral mesafe | OK |  |
 | Aşırı büyük PGA değeri yok (>4g şüpheli) | OK |  |

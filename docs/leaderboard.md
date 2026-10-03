@@ -23,9 +23,9 @@ bölmesinde.
 
 | Model | RMSE (log10 g) | R² | Not | Kaynak |
 |---|---|---|---|---|
-| Naif (train ortalaması) | 0.735 | 0.000 | Girdi kullanmıyor, sadece referans | `notebooks/02_ground_motion_baseline.py` |
-| Doğrusal (OLS, 3 öznitelik) | 0.421 | 0.672 | Kapalı-form en küçük kareler, ek bağımlılık yok | `notebooks/02_ground_motion_baseline.py` |
-| RandomForest (3 öznitelik) | 0.405 | 0.697 | 200 ağaç, max_depth=8 | `notebooks/03_ground_motion_randomforest.py` |
+| Naif (train ortalaması) | 0.733 | 0.000 | Girdi kullanmıyor, sadece referans | `notebooks/02_ground_motion_baseline.py` |
+| Doğrusal (OLS, 3 öznitelik) | 0.421 | 0.670 | Kapalı-form en küçük kareler, ek bağımlılık yok | `notebooks/02_ground_motion_baseline.py` |
+| RandomForest (3 öznitelik) | 0.403 | 0.697 | 200 ağaç, max_depth=8 | `notebooks/03_ground_motion_randomforest.py` |
 
 ## phase_picking
 

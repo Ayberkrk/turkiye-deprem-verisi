@@ -3,6 +3,33 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## v5.11
+
+- Deduplikasyon yöntemi değişti (`scripts/expand_catalog.py`, v3):
+  olaylar zaman sırasıyla açık olan en iyi kümeye katılmak yerine, tüm
+  aday çiftler skorlanıp en iyi eşleşmeden başlanarak birleştiriliyor.
+  Eski yöntemde bir kayıt, gerçek eşi birkaç milisaniye sonra gelecek
+  olsa da önce zayıf eşleşen bir kümeye bağlanabiliyor, gerçek eş de
+  "aynı kaynaktan ikinci olay giremez" kuralına takılıp ayrı bir deprem
+  olarak kalıyordu. Eşikler ve aynı-kaynak kuralı değişmedi.
+  **Olay sayısı 84.100 -> 84.080**; düşük güvenli (<0.5) küme sayısı
+  57 -> 51.
+- Deduplikasyon öncesi kimlikler artık kaynağına bakılmaksızın
+  temsilciye eşleniyor (`scripts/event_ids.py`); önceden yalnızca USGS
+  kimlikleri eşleniyordu. Aynı (olay, istasyon) için birden fazla dosya
+  indirilmişse `event_station_table.csv`'de tek satıra indiriliyor:
+  **5.409 -> 5.377 satır, dalga formu olan olay 1.104 -> 1.098**,
+  mühendislik için kullanılabilir kayıt 2.169 -> 2.152. Diskteki dosya
+  sayısı (5.413) değişmedi.
+- `validate_dataset.py`'ye yeni kontrol: `event_station_table.csv`'de
+  her (event_id, station) çifti tek satır.
+- `ground_motion` skorları yeniden ölçüldü (test, n=349): OLS RMSE
+  0.421 / R² 0.670, RandomForest 0.403 / 0.697.
+- `DATA_CARD.md`'deki bilinen sınırlamalar ölçümle düzeltildi: asıl
+  sızıntı kaynağı yinelenen olaylar değil, artçı dizilerinde örtüşen
+  kayıt pencereleri (346 kayıt; önceki sürümde verilen 60 sayısı,
+  filtresiz PGV'ye dayandığı için eksik sayımdı).
+
 ## v5.10
 
 - Tepki çıkarımından sonra ivme ve hız kayıtlarına sıfır fazlı yüksek

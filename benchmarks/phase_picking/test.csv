@@ -1,14 +1,11 @@
 event_id,station,file,p_pick_time,s_pick_time,p_pick_confidence,s_pick_confidence
 quakeml:eu.emsc/event/20150528_0000043,BODT,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20150528_0000043_BODT.mseed,2015-05-28T13:00:03.300000Z,,0.087,
 quakeml:eu.emsc/event/20201031_0000312,BLCB,data/processed/waveforms/quakeml-c-eu.emsc-s-event-s-20201031_0000312_BLCB.mseed,2020-10-31T14:42:58.000000Z,,0.238,
-smi:ISC/evid=12702302,YER,data/processed/waveforms/smi-c-ISC-s-evid-e-12702302_YER.mseed,2009-03-02T22:03:08.740000Z,,0.026,
 smi:ISC/evid=617504661,DAT,data/processed/waveforms/smi-c-ISC-s-evid-e-617504661_DAT.mseed,2020-01-30T11:25:01.120000Z,2020-01-30T11:26:47.560000Z,0.044,0.013
 smi:ISC/evid=617504661,DALY,data/processed/waveforms/smi-c-ISC-s-evid-e-617504661_DALY.mseed,2020-01-30T11:24:17.400000Z,2020-01-30T11:25:07.960000Z,0.078,0.02
 smi:ISC/evid=641959986,TASB,data/processed/waveforms/smi-c-ISC-s-evid-e-641959986_TASB.mseed,2023-01-28T18:18:58.960000Z,2023-01-28T18:20:18.080000Z,0.164,0.045
 smi:ISC/evid=641959986,AKDM,data/processed/waveforms/smi-c-ISC-s-evid-e-641959986_AKDM.mseed,2023-01-28T18:18:10.730000Z,,0.05,
 smi:ISC/evid=641959986,MLAZ,data/processed/waveforms/smi-c-ISC-s-evid-e-641959986_MLAZ.mseed,2023-01-28T18:18:20.810000Z,2023-01-28T18:18:47.990000Z,0.017,0.017
-smi:ISC/evid=642689053,DARE,data/processed/waveforms/smi-c-ISC-s-evid-e-642689053_DARE.mseed,2023-02-06T10:55:24.180000Z,,0.157,
-smi:ISC/evid=642689053,GUMT,data/processed/waveforms/smi-c-ISC-s-evid-e-642689053_GUMT.mseed,2023-02-06T10:55:37.280000Z,,0.056,
 smi:ISC/evid=643165028,BOTS,data/processed/waveforms/smi-c-ISC-s-evid-e-643165028_BOTS.mseed,2025-04-23T09:49:16.110000Z,2025-04-23T09:50:45.470000Z,0.565,0.005
 smi:ISC/evid=643165028,GUZE,data/processed/waveforms/smi-c-ISC-s-evid-e-643165028_GUZE.mseed,2025-04-23T09:49:17.710000Z,,0.147,
 smi:ISC/evid=644221306,NMR9,data/processed/waveforms/smi-c-ISC-s-evid-e-644221306_NMR9.mseed,2025-10-02T11:55:09.110000Z,2025-10-02T11:58:12.480000Z,0.551,0.042
