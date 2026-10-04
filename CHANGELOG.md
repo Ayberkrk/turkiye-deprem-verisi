@@ -3,7 +3,7 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
-## v5.15 (yayınlanmadı)
+## v5.15
 
 - Yeni `scripts/gmpe.py` ve `notebooks/07_gmpe_comparison.py`:
   gözlenen PGA'nın, bu veriyle kalibre edilmemiş yayınlanmış bir modelle
