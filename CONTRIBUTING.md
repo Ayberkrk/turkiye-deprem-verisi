@@ -65,3 +65,8 @@ kolay yolu.
 Kısa, açıklayıcı, Türkçe (depo Türkçe yazıldığı için) ve neden'i
 anlatan bir özetle başlayın. AI/asistan araçlarına referans veya
 "Co-Authored-By" satırı eklemeyin.
+
+## Davranış kuralları
+
+Bu proje [Contributor Covenant](CODE_OF_CONDUCT.md) davranış kurallarını
+benimser. Katkıda bulunarak bu kurallara uymayı kabul etmiş olursunuz.
