@@ -4,7 +4,6 @@ birim testler: mesafe hesabı, büyüklüğe bağlı eşik ve kümeleme.
 """
 import numpy as np
 import pytest
-
 from expand_catalog import (
     MAX_DISTANCE_KM,
     MAX_MAGNITUDE_DIFF,
@@ -54,7 +53,7 @@ def test_distance_threshold_matches_formula_in_valid_range():
 
 def _clusters(events):
     """events: (zaman_sn, enlem, boylam, büyüklük, kaynak) listesi, zamana göre sıralı."""
-    times, lats, lons, mags, sources = (np.array(col) for col in zip(*events))
+    times, lats, lons, mags, sources = (np.array(col) for col in zip(*events, strict=True))
     pairs = candidate_pairs(times, lats, lons, mags, sources)
     return best_first_clusters(times, sources, pairs)
 

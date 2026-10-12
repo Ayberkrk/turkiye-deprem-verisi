@@ -19,9 +19,7 @@ Kullanım:
 import json
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-
 from event_ids import remap_to_representative, representative_id_lookup
 
 PROCESSED = Path("data/processed")

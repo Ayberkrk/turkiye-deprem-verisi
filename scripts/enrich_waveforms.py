@@ -536,7 +536,7 @@ def compute_features(mseed_path: Path, catalog=None):
                 pair = aligned_horizontals(st_acc)
                 if pair is not None and len(pair[2]) > 20:
                     _, _, h1, h2, dt_h = pair
-                    for T, suffix in zip(SA_PERIODS_SEC, SA_COLUMN_SUFFIXES):
+                    for T, suffix in zip(SA_PERIODS_SEC, SA_COLUMN_SUFFIXES, strict=True):
                         result[f"sa_rotd50_g_{suffix}"] = round(sa_rotd50(h1, h2, dt_h, T) / 9.81, 5)
             except Exception:
                 pass
@@ -578,7 +578,10 @@ def compute_features(mseed_path: Path, catalog=None):
             result["p_pick_time"] = str(z_trace.stats.starttime + p_idx / sr)
             # STA/LTA tepe değeri ne kadar yüksekse tetiklenme o kadar
             # belirgin demektir; 3.5-15 aralığını kabaca 0-1'e ölçekliyoruz.
-            peak_val = float(np.max(cft[onsets[0][0]:onsets[0][1] + 1])) if onsets[0][1] > onsets[0][0] else float(cft[p_idx])
+            if onsets[0][1] > onsets[0][0]:
+                peak_val = float(np.max(cft[onsets[0][0] : onsets[0][1] + 1]))
+            else:
+                peak_val = float(cft[p_idx])
             result["p_pick_confidence"] = round(float(np.clip((peak_val - 3.5) / (15 - 3.5), 0, 1)), 3)
 
             # SNR: P'den önceki 5 saniye vs P'den sonraki 5 saniye (RMS oranı)
@@ -603,7 +606,10 @@ def compute_features(mseed_path: Path, catalog=None):
                 if after_p:
                     s_idx = after_p[0][0]
                     result["s_pick_time"] = str(z_trace.stats.starttime + s_idx / sr)
-                    peak_val_h = float(np.max(cft_h[after_p[0][0]:after_p[0][1] + 1])) if after_p[0][1] > after_p[0][0] else float(cft_h[s_idx])
+                    if after_p[0][1] > after_p[0][0]:
+                        peak_val_h = float(np.max(cft_h[after_p[0][0] : after_p[0][1] + 1]))
+                    else:
+                        peak_val_h = float(cft_h[s_idx])
                     result["s_pick_confidence"] = round(float(np.clip((peak_val_h - 3.5) / (15 - 3.5), 0, 1)), 3)
     else:
         qc_flags.append("Z_bileşeni_yok_veya_kısa")

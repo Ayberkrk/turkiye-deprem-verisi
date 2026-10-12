@@ -4,7 +4,6 @@ scripts/geo.py'deki paylaşılan haversine_km için birim testler. Önceden
 yerde tanımlı ve buradan test ediliyor (bkz. issue #12).
 """
 import pytest
-
 from geo import haversine_km
 
 

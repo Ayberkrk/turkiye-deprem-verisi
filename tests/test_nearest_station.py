@@ -6,7 +6,6 @@ regresyon issue #1'e yol açmıştı).
 """
 import pandas as pd
 import pytest
-
 from build_dataset import nearest
 
 

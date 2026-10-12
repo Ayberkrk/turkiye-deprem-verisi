@@ -9,7 +9,6 @@ import hashlib
 
 import pandas as pd
 import pytest
-
 from build_benchmarks import (
     TRAIN_FRAC,
     VAL_FRAC,
@@ -32,7 +31,7 @@ def test_event_split_only_valid_labels():
 def test_event_split_not_dependent_on_python_hash_seed():
     # hashlib.md5 kullanılmalı, yerleşik hash() değil - PYTHONHASHSEED'e
     # bağlı olsaydı her çalıştırmada farklı bölme çıkardı.
-    digest = hashlib.md5(str("us7000pufv").encode()).hexdigest()
+    digest = hashlib.md5(b"us7000pufv").hexdigest()
     frac = int(digest[:8], 16) / 0xFFFFFFFF
     expected = "train" if frac < TRAIN_FRAC else ("val" if frac < TRAIN_FRAC + VAL_FRAC else "test")
     assert event_split("us7000pufv") == expected

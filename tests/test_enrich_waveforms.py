@@ -7,8 +7,6 @@ testi hali.
 """
 import numpy as np
 import pytest
-from obspy import Stream, Trace, UTCDateTime
-
 from enrich_waveforms import (
     DEFAULT_HIGHPASS_HZ,
     aligned_horizontals,
@@ -22,6 +20,7 @@ from enrich_waveforms import (
     sdof_displacement_history,
     window_max_magnitude,
 )
+from obspy import Stream, Trace, UTCDateTime
 
 
 def test_newmark_psa_matches_resonance_analytical_solution():

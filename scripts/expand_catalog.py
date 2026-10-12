@@ -39,11 +39,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from geo import haversine_km
 from obspy import UTCDateTime
 from obspy.clients.fdsn import Client
 from obspy.clients.fdsn.header import FDSNException
-
-from geo import haversine_km
 
 PROCESSED = Path("data/processed")
 BBOX = dict(minlatitude=35.0, maxlatitude=43.0, minlongitude=25.0, maxlongitude=45.5)

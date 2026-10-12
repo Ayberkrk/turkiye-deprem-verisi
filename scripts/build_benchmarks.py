@@ -164,8 +164,17 @@ def build_phase_picking_task(table: pd.DataFrame):
     yalnızca aynı otomatik etiketlerle bir model eğitmek/karşılaştırmak
     isteyenler için tutarlı bir bölme sağlar."""
     df = table[table["usable_for_phase_picking"] == True].copy()  # noqa: E712
-    cols = ["event_id", "station", "file", "p_pick_time", "s_pick_time",
-            "p_pick_confidence", "s_pick_confidence", "sampling_rate_hz" if "sampling_rate_hz" in table.columns else None]
+    sampling_rate_col = "sampling_rate_hz" if "sampling_rate_hz" in table.columns else None
+    cols = [
+        "event_id",
+        "station",
+        "file",
+        "p_pick_time",
+        "s_pick_time",
+        "p_pick_confidence",
+        "s_pick_confidence",
+        sampling_rate_col,
+    ]
     cols = [c for c in cols if c is not None and c in df.columns]
     df = df.assign(_split_key=split_key(df))[cols + ["_split_key"]].dropna(subset=["p_pick_time"])
 

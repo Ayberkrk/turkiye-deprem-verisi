@@ -19,13 +19,12 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-
 from validate_dataset import (
+    benchmark_leakage_checks,
     dedup_quality_checks,
     event_station_geometry_checks,
     fetch_log_consistency_check,
     ground_motion_plausibility_checks,
-    benchmark_leakage_checks,
     horizontal_component_checks,
     load_benchmark_splits,
     phase_order_check,

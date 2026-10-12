@@ -109,7 +109,10 @@ def main():
             if len(cat) > 0:
                 # Birden fazla aday varsa, büyüklüğü bizimkine en yakın olanı seç
                 isc_ev = min(
-                    cat, key=lambda e: abs((e.preferred_magnitude().mag if e.preferred_magnitude() else 0) - ev["magnitude"])
+                    cat,
+                    key=lambda e: abs(
+                        (e.preferred_magnitude().mag if e.preferred_magnitude() else 0) - ev["magnitude"]
+                    ),
                 )
                 target_stations = ev["stations"]
                 best_pick = {}  # (station, phase_type) -> en erken pick zamanı
