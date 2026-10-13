@@ -4,7 +4,6 @@ sentetik (bilinen hatalı) pick çiftleriyle ortalama/medyan hata ve
 güven-skoru bölmesinin doğru hesaplandığını doğruluyor.
 """
 import pandas as pd
-
 from compare_picks_to_isc import summarize
 
 

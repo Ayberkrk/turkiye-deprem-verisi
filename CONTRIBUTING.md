@@ -14,11 +14,17 @@ istiyorsanız aşağıdaki kontrol listesini takip edin.
    python -m pytest tests/ -v
    ```
 
-3. `scripts/` altındaki saf (dosya sistemi/ağ gerektirmeyen) fonksiyonlar
+3. Ruff lint kontrolünü çalıştırın:
+
+   ```bash
+   python -m ruff check .
+   ```
+
+4. `scripts/` altındaki saf (dosya sistemi/ağ gerektirmeyen) fonksiyonlar
    için mümkünse `tests/` altına bir birim test ekleyin - özellikle
    sayısal/fiziksel bir hesaplama düzeltiyorsanız (bkz.
    `tests/test_enrich_waveforms.py`'deki analitik doğrulama örnekleri).
-4. Veri üreten bir script'i değiştirdiyseniz, ilgili script'i çalıştırıp
+5. Veri üreten bir script'i değiştirdiyseniz, ilgili script'i çalıştırıp
    çıktının değiştiğini/değişmediğini kontrol edin, ardından hızlı bir
    ön kontrol için (parquet/CSV'leri kontrol eder, saniyeler içinde
    biter, dalga formu dosyalarını tek tek açmaz):
@@ -36,7 +42,7 @@ istiyorsanız aşağıdaki kontrol listesini takip edin.
 
    ile veri setinin bütünlük/tutarlılık kontrolünden geçtiğinden emin
    olun.
-5. Kod tabanının kendi yorum/docstring stiline uyun (Türkçe, teknik
+6. Kod tabanının kendi yorum/docstring stiline uyun (Türkçe, teknik
    gerekçe içeren, "neden" açıklayan yorumlar - "ne yaptığını" değil).
 
 ## Yeni bir açık veri kaynağı ekleme

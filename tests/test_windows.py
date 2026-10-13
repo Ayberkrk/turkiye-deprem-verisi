@@ -4,8 +4,6 @@ penceredeki başka depremlerin tespiti.
 """
 import numpy as np
 import pandas as pd
-import pytest
-
 from build_benchmarks import event_split, split_key
 from windows import (
     RECORD_WINDOW_SEC,
@@ -61,7 +59,7 @@ def test_split_key_falls_back_to_event_id_without_window_group():
 
 
 def _catalog_arrays(rows):
-    ids, secs, mags = zip(*rows)
+    ids, secs, mags = zip(*rows, strict=True)
     return np.array(ids), (np.array(secs) * 1e9).astype("int64"), np.array(mags, dtype=float)
 
 

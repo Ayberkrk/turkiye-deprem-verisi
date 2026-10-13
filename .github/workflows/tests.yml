@@ -20,6 +20,9 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -e .
 
+      - name: Ruff lint
+        run: python -m ruff check .
+
       - name: Birim testler (scripts/ içindeki saf fonksiyonlar + turkiye_deprem paketi)
         run: python -m pytest tests/ -v
 

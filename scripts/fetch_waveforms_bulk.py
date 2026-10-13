@@ -53,11 +53,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
+from geo import haversine_km
 from obspy import UTCDateTime
 from obspy.clients.fdsn import Client
 from obspy.clients.fdsn.header import FDSNException
-
-from geo import haversine_km
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build_dataset import estimate_mw, magnitude_scale_group  # noqa: E402
@@ -126,7 +125,10 @@ def load_already_tried():
     if not LOG_PATH.exists():
         return {}
     df = pd.read_csv(LOG_PATH)
-    return {(eid, sta): status for eid, sta, status in zip(df["event_id"], df["station"], df["status"])}
+    return {
+        (eid, sta): status
+        for eid, sta, status in zip(df["event_id"], df["station"], df["status"], strict=True)
+    }
 
 
 def append_log(row: dict):
@@ -242,7 +244,9 @@ def main():
         if active.empty:
             continue
         active = active[
-            active["station"].apply(lambda s: station_had_usable_channel_at(channel_activity, s, event_time))
+            active["station"].apply(
+                lambda s, event_time=event_time: station_had_usable_channel_at(channel_activity, s, event_time)
+            )
         ]
         if active.empty:
             continue

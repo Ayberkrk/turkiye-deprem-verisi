@@ -14,9 +14,10 @@ Kullanım:
     python scripts/download_usgs.py
 """
 import time
-import requests
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+import requests
 
 USGS_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 

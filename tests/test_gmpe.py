@@ -11,7 +11,6 @@ bölgesini (Vs30 < 750, 750-1000, > 1000) kapsıyor. Tabloların tamamı
 """
 import numpy as np
 import pytest
-
 from gmpe import ASB14_SIGMA_LN, akkar2014_pga_g
 
 RHYPO_CASES = [

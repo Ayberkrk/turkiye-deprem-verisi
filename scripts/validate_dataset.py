@@ -34,7 +34,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from geo import haversine_km
 
 PROCESSED = Path("data/processed")
@@ -299,7 +298,7 @@ def main():
 
     report_md_path = PROCESSED / "validation_report.md"
     with open(report_md_path, "w") as f:
-        f.write(f"# Veri Doğrulama Raporu\n\n")
+        f.write("# Veri Doğrulama Raporu\n\n")
         f.write(f"Üretim zamanı: {report['generated_at']}\n\n")
         f.write(f"Toplam olay: {report['total_events']}, toplam dalga formu dosyası: "
                 f"{report['total_waveform_files']}\n\n")

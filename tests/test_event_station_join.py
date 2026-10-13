@@ -11,7 +11,6 @@ başka bir istasyonun mesafesiyle karışmadığını doğruluyor.
 """
 import pandas as pd
 import pytest
-
 from build_event_station_table import hypocentral_km, join_features_with_distances
 
 

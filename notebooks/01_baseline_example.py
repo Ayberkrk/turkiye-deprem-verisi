@@ -40,7 +40,7 @@ def plot_magnitude_over_time():
     fig.savefig(OUT_DIR / "magnitude_over_time.png", dpi=120)
     print(f"Kaydedildi: {OUT_DIR / 'magnitude_over_time.png'}")
 
-    print(f"\nÖzet istatistik:")
+    print("\nÖzet istatistik:")
     print(f"  Toplam olay: {len(df)}")
     print(f"  Gerçek dalga formu olan olay: {df['has_waveform'].sum()}")
     print(f"  Güçlü hareket istasyonuna <50km mesafede olan olay: "

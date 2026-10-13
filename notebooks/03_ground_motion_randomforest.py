@@ -65,7 +65,7 @@ def main():
             r2 = 1 - ss_res / ss_tot
             print(f"{name:<6} {model_name:<14} {rmse:<15.4f} {r2:<8.3f}")
 
-    importances = dict(zip(FEATURES, rf.feature_importances_))
+    importances = dict(zip(FEATURES, rf.feature_importances_, strict=True))
     print("\nRandomForest öznitelik önemi (feature importance):")
     for feat, imp in sorted(importances.items(), key=lambda kv: -kv[1]):
         print(f"  {feat}: {imp:.3f}")
