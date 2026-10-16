@@ -5,6 +5,7 @@
 [![GitHub release](https://img.shields.io/github/v/release/Ayberkrk/turkiye-deprem-verisi)](https://github.com/Ayberkrk/turkiye-deprem-verisi/releases)
 [![Hugging Face Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-yellow)](https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22754705.svg)](https://doi.org/10.5281/zenodo.22754705)
+[![good first issues](https://img.shields.io/github/issues/Ayberkrk/turkiye-deprem-verisi/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/Ayberkrk/turkiye-deprem-verisi/labels/good%20first%20issue)
 
 ## English summary
 
