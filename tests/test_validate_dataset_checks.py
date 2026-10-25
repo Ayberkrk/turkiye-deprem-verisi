@@ -7,6 +7,7 @@ başarısız olur) senaryosu deneniyor.
 import pandas as pd
 import pytest
 from validate_dataset import (
+    benchmark_holdout_checks,
     benchmark_leakage_checks,
     dedup_quality_checks,
     event_station_geometry_checks,
@@ -296,6 +297,64 @@ def test_benchmark_leakage_check_catches_overlapping_events_in_different_splits(
 
 def test_benchmark_leakage_check_skipped_without_window_group():
     assert benchmark_leakage_checks(pd.DataFrame({"event_id": ["a"]}), {}) == []
+
+
+def test_station_holdout_check_catches_station_overlap_and_missing_station():
+    name = "İstasyon holdout'unda hiçbir istasyon bölmeler arasında paylaşılmıyor"
+    clean = {
+        "ground_motion_holdout_by_station": {
+            "train": pd.DataFrame({"station": ["A"]}),
+            "val": pd.DataFrame({"station": ["B"]}),
+            "test": pd.DataFrame({"station": ["C"]}),
+        }
+    }
+    condition, _ = result_for(benchmark_holdout_checks(clean), name)
+    assert condition
+
+    leaking = {
+        "ground_motion_holdout_by_station": {
+            "train": pd.DataFrame({"station": ["A", None]}),
+            "val": pd.DataFrame({"station": ["B"]}),
+            "test": pd.DataFrame({"station": ["A"]}),
+        }
+    }
+    condition, detail = result_for(benchmark_holdout_checks(leaking), name)
+    assert not condition
+    assert "train/test" in detail
+    assert "train" in detail
+
+
+def test_station_holdout_check_catches_missing_split():
+    checks = benchmark_holdout_checks({
+        "ground_motion_holdout_by_station": {"train": pd.DataFrame({"station": ["A"]})}
+    })
+    condition, detail = result_for(checks, "İstasyon holdout'unda train/val/test bölmeleri mevcut")
+    assert not condition
+    assert "val" in detail and "test" in detail
+
+
+def test_time_holdout_check_enforces_cutoff_and_rejects_invalid_times():
+    name = "Zaman holdout'u kesim tarihinden önce train, eşik ve sonrasında test içeriyor"
+    clean = {
+        "ground_motion_holdout_by_time": {
+            "train": pd.DataFrame({"time_utc": ["2021-12-31T23:59:59Z"]}),
+            "test": pd.DataFrame({"time_utc": ["2022-01-01T00:00:00Z"]}),
+        }
+    }
+    condition, _ = result_for(benchmark_holdout_checks(clean), name)
+    assert condition
+
+    leaking = {
+        "ground_motion_holdout_by_time": {
+            "train": pd.DataFrame({"time_utc": ["2022-01-01T00:00:00Z", "bad"]}),
+            "test": pd.DataFrame({"time_utc": ["2021-12-31T23:59:59Z"]}),
+        }
+    }
+    condition, detail = result_for(benchmark_holdout_checks(leaking), name)
+    assert not condition
+    assert "train kesim sonrası=1" in detail
+    assert "test kesim öncesi=1" in detail
+    assert "geçersiz zaman" in detail
 
 
 def test_phase_order_check_catches_s_before_p():

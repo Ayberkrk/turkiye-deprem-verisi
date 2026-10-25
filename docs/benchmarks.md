@@ -73,6 +73,11 @@ holdout da üretiliyor:
   train'den büyük çıkıyor (train≈608, test≈1304). Bu, arşivin doğal
   zaman dağılımını yansıtıyor.
 
+`scripts/validate_dataset.py`, olay bazlı bölmelerde örtüşen pencere
+sızıntısını; istasyon holdout'unda train/val/test arasında istasyon
+örtüşmesini; zaman holdout'unda ise `2022-01-01` kesim tarihinin train ve
+test kayıtlarına doğru uygulandığını ayrıca kontrol eder.
+
 Bu üç bölmede basit OLS modelini train ortalamasıyla karşılaştıran ve olay
 kümeli bootstrap güven aralıkları hesaplayan betik:
 
