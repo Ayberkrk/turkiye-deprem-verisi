@@ -252,7 +252,10 @@ def benchmark_holdout_checks(splits_by_task, cutoff=TIME_SPLIT_CUTOFF):
                 for name, frame in station_splits.items()
                 if frame["station"].isna().any()
             }
-            detail = f"örtüşen istasyon sayıları={leaking or 'yok'}, istasyon alanı eksik satırlar={missing_stations or 'yok'}"
+            detail = (
+                f"örtüşen istasyon sayıları={leaking or 'yok'}, "
+                f"istasyon alanı eksik satırlar={missing_stations or 'yok'}"
+            )
             results.append(("İstasyon holdout'unda hiçbir istasyon bölmeler arasında paylaşılmıyor",
                             not leaking and not missing_stations, detail))
 
@@ -368,7 +371,7 @@ def main():
 
     report_md_path = PROCESSED / "validation_report.md"
     with open(report_md_path, "w") as f:
-        f.write(f"# Veri Doğrulama Raporu\n\n")
+        f.write("# Veri Doğrulama Raporu\n\n")
         f.write(f"Üretim zamanı: {report['generated_at']}\n\n")
         f.write(f"Toplam olay: {report['total_events']}, toplam dalga formu dosyası: "
                 f"{report['total_waveform_files']}\n\n")
