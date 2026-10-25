@@ -197,6 +197,8 @@ def benchmark_leakage_checks(event_station, splits_by_task):
     groups = event_station.drop_duplicates("event_id").set_index("event_id")["window_group"]
     results = []
     for task, splits in splits_by_task.items():
+        if not any("event_id" in frame.columns for frame in splits.values()):
+            continue
         rows = pd.concat([df[["event_id"]].assign(split=name) for name, df in splits.items()])
         rows["window_group"] = rows["event_id"].map(groups).fillna(rows["event_id"])
         leaking = int((rows.groupby("window_group")["split"].nunique() > 1).sum())

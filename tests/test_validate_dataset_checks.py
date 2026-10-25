@@ -299,6 +299,22 @@ def test_benchmark_leakage_check_skipped_without_window_group():
     assert benchmark_leakage_checks(pd.DataFrame({"event_id": ["a"]}), {}) == []
 
 
+def test_benchmark_leakage_check_skips_station_and_time_holdouts():
+    event_station = pd.DataFrame({"event_id": ["a"], "window_group": ["a"]})
+    holdouts = {
+        "ground_motion_holdout_by_station": {
+            "train": pd.DataFrame({"station": ["A"]}),
+            "val": pd.DataFrame({"station": ["B"]}),
+            "test": pd.DataFrame({"station": ["C"]}),
+        },
+        "ground_motion_holdout_by_time": {
+            "train": pd.DataFrame({"time_utc": ["2021-01-01"]}),
+            "test": pd.DataFrame({"time_utc": ["2023-01-01"]}),
+        },
+    }
+    assert benchmark_leakage_checks(event_station, holdouts) == []
+
+
 def test_station_holdout_check_catches_station_overlap_and_missing_station():
     name = "İstasyon holdout'unda hiçbir istasyon bölmeler arasında paylaşılmıyor"
     clean = {
