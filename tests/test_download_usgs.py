@@ -3,7 +3,6 @@ from pathlib import Path
 import pandas as pd
 import pyarrow.parquet as pq
 import pytest
-
 from download_usgs import write_catalog_by_year
 
 

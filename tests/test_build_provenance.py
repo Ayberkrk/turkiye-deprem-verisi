@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from build_provenance import (
     build_manifest,
     collect_outputs,

@@ -30,7 +30,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from expand_catalog import (
     MAX_DISTANCE_KM,
     MAX_MAGNITUDE_DIFF,
