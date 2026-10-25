@@ -349,6 +349,28 @@ def test_station_holdout_check_catches_missing_split():
     assert "val" in detail and "test" in detail
 
 
+def test_holdout_checks_reject_empty_splits():
+    checks = benchmark_holdout_checks({
+        "ground_motion_holdout_by_station": {
+            "train": pd.DataFrame({"station": ["A"]}),
+            "val": pd.DataFrame({"station": []}),
+            "test": pd.DataFrame({"station": ["C"]}),
+        },
+        "ground_motion_holdout_by_time": {
+            "train": pd.DataFrame({"time_utc": ["2021-12-31T23:59:59Z"]}),
+            "test": pd.DataFrame({"time_utc": []}),
+        },
+    })
+    station_ok, station_detail = result_for(
+        checks, "İstasyon holdout'unda hiçbir istasyon bölmeler arasında paylaşılmıyor"
+    )
+    time_ok, time_detail = result_for(
+        checks, "Zaman holdout'u kesim tarihinden önce train, eşik ve sonrasında test içeriyor"
+    )
+    assert not station_ok and "val" in station_detail
+    assert not time_ok and "test" in time_detail
+
+
 def test_time_holdout_check_enforces_cutoff_and_rejects_invalid_times():
     name = "Zaman holdout'u kesim tarihinden önce train, eşik ve sonrasında test içeriyor"
     clean = {

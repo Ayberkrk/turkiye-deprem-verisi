@@ -254,12 +254,15 @@ def benchmark_holdout_checks(splits_by_task, cutoff=TIME_SPLIT_CUTOFF):
                 for name, frame in station_splits.items()
                 if frame["station"].isna().any()
             }
+            empty_station_splits = [name for name, frame in station_splits.items() if frame.empty]
             detail = (
                 f"örtüşen istasyon sayıları={leaking or 'yok'}, "
                 f"istasyon alanı eksik satırlar={missing_stations or 'yok'}"
             )
+            if empty_station_splits:
+                detail += f", boş bölmeler={empty_station_splits}"
             results.append(("İstasyon holdout'unda hiçbir istasyon bölmeler arasında paylaşılmıyor",
-                            not leaking and not missing_stations, detail))
+                            not leaking and not missing_stations and not empty_station_splits, detail))
 
     time_splits = splits_by_task.get("ground_motion_holdout_by_time")
     if time_splits is not None:
@@ -274,11 +277,13 @@ def benchmark_holdout_checks(splits_by_task, cutoff=TIME_SPLIT_CUTOFF):
                 for name, frame in time_splits.items()
             }
             invalid = {name: int(values.isna().sum()) for name, values in parsed.items() if values.isna().any()}
+            empty_splits = [name for name, values in parsed.items() if values.empty]
             train_late = int((parsed["train"] >= boundary).sum())
             test_early = int((parsed["test"] < boundary).sum())
-            valid = not invalid and train_late == 0 and test_early == 0
+            valid = not invalid and not empty_splits and train_late == 0 and test_early == 0
             detail = (f"geçersiz zaman={invalid or 'yok'}, train kesim sonrası={train_late}, "
-                      f"test kesim öncesi={test_early}, eşik={boundary.isoformat()}")
+                      f"test kesim öncesi={test_early}, boş bölmeler={empty_splits or 'yok'}, "
+                      f"eşik={boundary.isoformat()}")
             results.append(("Zaman holdout'u kesim tarihinden önce train, eşik ve sonrasında test içeriyor",
                             valid, detail))
     return results
