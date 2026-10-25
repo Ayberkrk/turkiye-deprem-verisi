@@ -13,10 +13,14 @@ Bellek stratejisi (8GB RAM için):
 Kullanım:
     python scripts/download_usgs.py
 """
+import os
+import tempfile
 import time
 from pathlib import Path
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 import requests
 
 USGS_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -31,6 +35,20 @@ END_YEAR = 2026
 MIN_MAGNITUDE = 3.0  # Küçük depremler dahil edilmek istenmezse yükseltilebilir
 
 OUT_PATH = Path("data/processed/usgs_catalog_turkey.parquet")
+OUTPUT_SCHEMA = pa.schema(
+    [
+        ("event_id", pa.string()),
+        ("magnitude", pa.float64()),
+        ("mag_type", pa.string()),
+        ("place", pa.string()),
+        ("longitude", pa.float64()),
+        ("latitude", pa.float64()),
+        ("depth_km", pa.float64()),
+        ("status", pa.string()),
+        ("source", pa.string()),
+        ("time_utc", pa.timestamp("ns", tz="UTC")),
+    ]
+)
 
 
 def fetch_year(year: int) -> pd.DataFrame:
@@ -65,29 +83,92 @@ def fetch_year(year: int) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def main():
-    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    all_frames = []
-    for year in range(START_YEAR, END_YEAR + 1):
+def normalize_year_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    """Normalize one annual response to the stable output schema."""
+    if frame.empty and "time_ms" not in frame.columns:
+        frame = pd.DataFrame(columns=["event_id", "time_ms", "magnitude", "mag_type", "place",
+                                      "longitude", "latitude", "depth_km", "status", "source"])
+    if "time_utc" not in frame.columns:
+        if "time_ms" not in frame.columns:
+            raise ValueError("USGS response is missing both time_ms and time_utc")
+        frame = frame.copy()
+        frame["time_utc"] = pd.to_datetime(frame["time_ms"], unit="ms", utc=True)
+        frame = frame.drop(columns=["time_ms"])
+    else:
+        frame = frame.copy()
+        frame["time_utc"] = pd.to_datetime(frame["time_utc"], utc=True)
+
+    for column in OUTPUT_SCHEMA.names:
+        if column not in frame.columns:
+            frame[column] = pd.NA
+    return frame[OUTPUT_SCHEMA.names].sort_values("time_utc").reset_index(drop=True)
+
+
+def write_catalog_by_year(
+    years,
+    out_path: Path,
+    *,
+    fetcher=fetch_year,
+    sleep_fn=time.sleep,
+    pause_seconds: float = 0.5,
+) -> tuple[int, list[int]]:
+    """Fetch and write one year at a time, publishing only a complete result.
+
+    A temporary parquet file is atomically moved into place after every year
+    succeeds. Failed years are reported and prevent a partial catalog from
+    replacing the previous output. Memory use is bounded by one year response.
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary_name = tempfile.mkstemp(prefix=f".{out_path.name}.", suffix=".tmp", dir=out_path.parent)
+    os.close(fd)
+    temporary_path = Path(temporary_name)
+    writer = None
+    failed_years: list[int] = []
+    total_rows = 0
+    try:
+        writer = pq.ParquetWriter(temporary_path, OUTPUT_SCHEMA)
+        for year in years:
+            try:
+                frame = normalize_year_frame(fetcher(year))
+            except Exception as exc:
+                failed_years.append(year)
+                print(f"[UYARI] {year} yılı çekilemedi: {exc}")
+            else:
+                if not frame.empty:
+                    arrays = {
+                        column: pa.array(frame[column].tolist(), type=field.type, from_pandas=True)
+                        for column, field in zip(OUTPUT_SCHEMA.names, OUTPUT_SCHEMA, strict=True)
+                    }
+                    table = pa.Table.from_pydict(arrays, schema=OUTPUT_SCHEMA)
+                    writer.write_table(table)
+                    total_rows += len(frame)
+                print(f"{year}: {len(frame)} olay")
+            if pause_seconds:
+                sleep_fn(pause_seconds)
+
+        writer.close()
+        writer = None
+        if failed_years:
+            years_text = ", ".join(map(str, failed_years))
+            raise RuntimeError(f"USGS catalog incomplete; failed years: {years_text}. Existing output preserved.")
+        if total_rows == 0:
+            raise RuntimeError("USGS catalog fetch returned zero rows for every year; existing output preserved.")
+        os.replace(temporary_path, out_path)
+    except Exception:
         try:
-            df = fetch_year(year)
-        except requests.RequestException as e:
-            print(f"[UYARI] {year} yılı çekilemedi: {e}")
-            continue
-        if not df.empty:
-            all_frames.append(df)
-        print(f"{year}: {len(df)} olay")
-        time.sleep(0.5)  # USGS sunucusuna nazik davranalım
+            if writer is not None:
+                writer.close()
+        finally:
+            temporary_path.unlink(missing_ok=True)
+        raise
 
-    if not all_frames:
-        print("Hiç veri çekilemedi.")
-        return
+    return total_rows, failed_years
 
-    result = pd.concat(all_frames, ignore_index=True)
-    result["time_utc"] = pd.to_datetime(result["time_ms"], unit="ms", utc=True)
-    result = result.drop(columns=["time_ms"]).sort_values("time_utc").reset_index(drop=True)
-    result.to_parquet(OUT_PATH, index=False)
-    print(f"\nToplam {len(result)} deprem kaydı -> {OUT_PATH}")
+
+def main():
+    rows, _ = write_catalog_by_year(range(START_YEAR, END_YEAR + 1), OUT_PATH)
+    print(f"\nToplam {rows} deprem kaydı -> {OUT_PATH}")
 
 
 if __name__ == "__main__":

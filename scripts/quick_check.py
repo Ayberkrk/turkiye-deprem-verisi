@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 from validate_dataset import (
+    benchmark_holdout_checks,
     benchmark_leakage_checks,
     dedup_quality_checks,
     event_station_geometry_checks,
@@ -67,7 +68,11 @@ def main():
     for name, condition, detail in horizontal_component_checks(features):
         check(name, condition, detail)
 
-    for name, condition, detail in benchmark_leakage_checks(event_station, load_benchmark_splits(Path("benchmarks"))):
+    benchmark_splits = load_benchmark_splits(Path("benchmarks"))
+    for name, condition, detail in benchmark_leakage_checks(event_station, benchmark_splits):
+        check(name, condition, detail)
+
+    for name, condition, detail in benchmark_holdout_checks(benchmark_splits):
         check(name, condition, detail)
 
     phase_result = phase_order_check(features)

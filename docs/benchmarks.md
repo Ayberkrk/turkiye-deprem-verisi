@@ -73,6 +73,32 @@ holdout da üretiliyor:
   train'den büyük çıkıyor (train≈608, test≈1304). Bu, arşivin doğal
   zaman dağılımını yansıtıyor.
 
+`scripts/validate_dataset.py`, olay bazlı bölmelerde örtüşen pencere
+sızıntısını; istasyon holdout'unda train/val/test arasında istasyon
+örtüşmesini; zaman holdout'unda ise `2022-01-01` kesim tarihinin train ve
+test kayıtlarına doğru uygulandığını ayrıca kontrol eder.
+
+Bu üç bölmede basit OLS modelini train ortalamasıyla karşılaştıran ve olay
+kümeli bootstrap güven aralıkları hesaplayan betik:
+
+```bash
+python notebooks/08_benchmark_generalization.py
+```
+
+Test sonuçları (sabit seed, 1.000 tekrar; aralıklar kayıt satırı ağırlıklı
+RMSE ve R² için olay kümeleri örneklenerek hesaplanır):
+
+| Bölme | Train / test (kayıt) | Test olay / istasyon | OLS RMSE (95% GA) | OLS R² (95% GA) |
+|---|---:|---:|---:|---:|
+| Olay bazlı | 1.214 / 325 | 109 / 52 | 0.418 (0.384–0.453) | 0.669 (0.559–0.744) |
+| İstasyon holdout | 1.293 / 260 | 199 / 20 | 0.358 (0.320–0.393) | 0.791 (0.728–0.841) |
+| Zaman holdout | 606 / 1.302 | 400 / 62 | 0.433 (0.412–0.454) | 0.649 (0.598–0.691) |
+
+Bu aralıklar gözlenen test olaylarının örnekleme belirsizliğini özetler; yeni
+bölgelerde, istasyonlarda veya gelecekteki depremlerde performans garantisi
+vermez. Özellikle istasyon ve zaman bölmelerindeki kayıt dağılımı dengesizliği
+yorumda dikkate alınmalıdır.
+
 ## 2. phase_picking
 
 **Girdi**: dalga formu dosyası
@@ -239,15 +265,33 @@ değil. `notebooks/07_gmpe_comparison.py`, gözlemleri bu veriyle
 kalibre edilmemiş bir modelle kıyaslıyor: Akkar, Sandıkkaya ve Bommer
 (2014), hiposantral mesafe sürümü (`scripts/gmpe.py`; uygulama
 OpenQuake Engine'in doğrulama tablolarıyla test ediliyor). Model Mw
-beklediği için yalnızca `mw_estimate` dolu kayıtlar kullanılıyor
-(test'te 325 kaydın 169'u); hedef, modelin tanımlandığı bileşen olan
-`pga_geomean_g`.
+beklediği için yalnızca `mw_estimate` dolu kayıtlar kullanılıyor.
+Modelin yatay geometrik ortalama tanımıyla en uyumlu hedef
+`pga_geomean_g`; `pga_rotd50_g` de ayrıca raporlanıyor, ancak bu hedef
+GMPE'nin tanımına birebir karşılık gelmediğinden doğrudan model
+doğrulaması olarak yorumlanmamalı.
+
+Yanlılık, standart sapma ve RMSE yanında ortalama yanlılık için %95
+olay-kümeli bootstrap güven aralığı hesaplanır (1.000 tekrar, sabit
+seed). Aynı olaya ait istasyon kayıtları bootstrap'te birlikte örneklenir;
+bu aralık satırların birbirinden bağımsız olduğu varsayımını yapmaz.
+Test sonuçları büyüklük, hiposantral mesafe ve Vs30 aralıklarına göre de
+ayrıştırılır. Her alt grupta olay sayısı beşten azsa güven aralığı
+verilmez. Bu alt gruplar betimleyicidir: gözlemsel farklar tek başına
+ölçüm/işleme hatasının nedenini belirlemez.
 
 | Bölme | n | Yanlılık (log10) | Std | RMSE |
 |---|---|---|---|---|
 | train | 592 | -0.242 | 0.387 | 0.457 |
 | val | 188 | -0.285 | 0.356 | 0.456 |
 | test | 169 | -0.238 | 0.390 | 0.456 |
+
+Tablodaki sabit sayılar önceki `pga_geomean_g` çalıştırmasındandır.
+Güncel script her split ve iki PGA hedefi için kayıt/olay sayısını,
+yanlılığı, olay-kümeli güven aralığını, standart sapmayı ve RMSE'yi
+dinamik olarak yazdırır. Alt grup tanıları test bölmesinde büyüklük,
+hiposantral mesafe ve Vs30 aralıklarını kullanır; beşten az olay içeren
+gruplarda güven aralığı gösterilmez.
 
 Yanlılık = log10(gözlenen) - log10(model). İki sonuç:
 
@@ -256,7 +300,7 @@ Yanlılık = log10(gözlenen) - log10(model). İki sonuç:
   (0.387) neredeyse aynı. Büyüklük, mesafe ve zemin ölçeklemesi
   literatürle tutarlı; yanlılık mesafe dilimleri arasında -0.20 ile
   -0.31 arasında kalıyor.
-- **Düzey uyuşmuyor.** Gözlenen PGA, modelin tahmininden sistematik
+- **Düzey uyuşmazlığı tek başına hata nedeni kanıtlamaz.** Gözlenen PGA, modelin tahmininden sistematik
   olarak ~1,7 kat düşük (Mw 4-6 arasında -0.25 civarı, Mw > 6'da -0.14,
   n=43). Bunun nedeni bu çalışmada AYRIŞTIRILMADI. Olası açıklamalar:
   modelin türetildiği veri tabanında küçük depremlerin az olması
@@ -265,8 +309,9 @@ Yanlılık = log10(gözlenen) - log10(model). İki sonuç:
   faylanma tipinin bilinmemesi ya da bu veri setinin işleme zincirinde
   henüz fark edilmemiş sistematik bir etken. İkinci bir bağımsız model
   veya başka bir kaynaktan aynı kayıtların PGA değerleriyle kıyas bunu
-  ayırt eder; o yapılana kadar mutlak PGA düzeyini bu kadar bir
-  belirsizlikle değerlendirin.
+  ayırt eder; o yapılana kadar mutlak PGA düzeyini bu belirsizlikle
+  değerlendirin. Alt grup farkları ve olay-kümeli güven aralıkları
+  betimleyicidir; nedensel çıkarım sağlamaz.
 
 ```
 python notebooks/07_gmpe_comparison.py

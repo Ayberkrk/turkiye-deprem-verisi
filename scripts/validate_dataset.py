@@ -34,6 +34,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from build_benchmarks import TIME_SPLIT_CUTOFF
 from geo import haversine_km
 
 PROCESSED = Path("data/processed")
@@ -196,6 +197,8 @@ def benchmark_leakage_checks(event_station, splits_by_task):
     groups = event_station.drop_duplicates("event_id").set_index("event_id")["window_group"]
     results = []
     for task, splits in splits_by_task.items():
+        if not any("event_id" in frame.columns for frame in splits.values()):
+            continue
         rows = pd.concat([df[["event_id"]].assign(split=name) for name, df in splits.items()])
         rows["window_group"] = rows["event_id"].map(groups).fillna(rows["event_id"])
         leaking = int((rows.groupby("window_group")["split"].nunique() > 1).sum())
@@ -210,7 +213,80 @@ def load_benchmark_splits(bench_dir):
         paths = {name: bench_dir / task / f"{name}.csv" for name in ["train", "val", "test"]}
         if all(p.exists() for p in paths.values()):
             splits_by_task[task] = {name: pd.read_csv(p, usecols=["event_id"]) for name, p in paths.items()}
+    station_dir = bench_dir / "ground_motion" / "holdout_by_station"
+    station_paths = {name: station_dir / f"{name}.csv" for name in ("train", "val", "test")}
+    if any(path.exists() for path in station_paths.values()):
+        splits_by_task["ground_motion_holdout_by_station"] = {
+            name: pd.read_csv(path, usecols=["station"])
+            for name, path in station_paths.items() if path.exists()
+        }
+    time_dir = bench_dir / "ground_motion" / "holdout_by_time"
+    time_paths = {name: time_dir / f"{name}.csv" for name in ("train", "test")}
+    if any(path.exists() for path in time_paths.values()):
+        splits_by_task["ground_motion_holdout_by_time"] = {
+            name: pd.read_csv(path, usecols=["time_utc"])
+            for name, path in time_paths.items() if path.exists()
+        }
     return splits_by_task
+
+
+def benchmark_holdout_checks(splits_by_task, cutoff=TIME_SPLIT_CUTOFF):
+    """Check station isolation and chronological holdout boundaries."""
+    results = []
+    station_splits = splits_by_task.get("ground_motion_holdout_by_station")
+    if station_splits is not None:
+        missing = [name for name in ("train", "val", "test") if name not in station_splits]
+        if missing:
+            results.append(("İstasyon holdout'unda train/val/test bölmeleri mevcut", False,
+                            f"eksik bölmeler: {', '.join(missing)}"))
+        else:
+            station_sets = {
+                name: set(frame["station"].dropna().astype(str))
+                for name, frame in station_splits.items()
+            }
+            overlaps = {
+                f"{left}/{right}": len(station_sets[left] & station_sets[right])
+                for left, right in (("train", "val"), ("train", "test"), ("val", "test"))
+            }
+            leaking = {pair: count for pair, count in overlaps.items() if count}
+            missing_stations = {
+                name: int(frame["station"].isna().sum())
+                for name, frame in station_splits.items()
+                if frame["station"].isna().any()
+            }
+            empty_station_splits = [name for name, frame in station_splits.items() if frame.empty]
+            detail = (
+                f"örtüşen istasyon sayıları={leaking or 'yok'}, "
+                f"istasyon alanı eksik satırlar={missing_stations or 'yok'}"
+            )
+            if empty_station_splits:
+                detail += f", boş bölmeler={empty_station_splits}"
+            results.append(("İstasyon holdout'unda hiçbir istasyon bölmeler arasında paylaşılmıyor",
+                            not leaking and not missing_stations and not empty_station_splits, detail))
+
+    time_splits = splits_by_task.get("ground_motion_holdout_by_time")
+    if time_splits is not None:
+        missing = [name for name in ("train", "test") if name not in time_splits]
+        if missing:
+            results.append(("Zaman holdout'unda train/test bölmeleri mevcut", False,
+                            f"eksik bölmeler: {', '.join(missing)}"))
+        else:
+            boundary = pd.Timestamp(cutoff, tz="UTC")
+            parsed = {
+                name: pd.to_datetime(frame["time_utc"], utc=True, errors="coerce", format="ISO8601")
+                for name, frame in time_splits.items()
+            }
+            invalid = {name: int(values.isna().sum()) for name, values in parsed.items() if values.isna().any()}
+            empty_splits = [name for name, values in parsed.items() if values.empty]
+            train_late = int((parsed["train"] >= boundary).sum())
+            test_early = int((parsed["test"] < boundary).sum())
+            valid = not invalid and not empty_splits and train_late == 0 and test_early == 0
+            detail = (f"geçersiz zaman={invalid or 'yok'}, train kesim sonrası={train_late}, "
+                      f"test kesim öncesi={test_early}, boş bölmeler={empty_splits or 'yok'}, "
+                      f"eşik={boundary.isoformat()}")
+            results.append(("Zaman holdout'u kesim tarihinden önce train, eşik ve sonrasında test içeriyor",
+                            valid, detail))
+    return results
 
 
 def phase_order_check(features):
@@ -268,7 +344,11 @@ def main():
     for name, condition, detail in horizontal_component_checks(features):
         check(name, condition, detail)
 
-    for name, condition, detail in benchmark_leakage_checks(event_station, load_benchmark_splits(Path("benchmarks"))):
+    benchmark_splits = load_benchmark_splits(Path("benchmarks"))
+    for name, condition, detail in benchmark_leakage_checks(event_station, benchmark_splits):
+        check(name, condition, detail)
+
+    for name, condition, detail in benchmark_holdout_checks(benchmark_splits):
         check(name, condition, detail)
 
     phase_result = phase_order_check(features)

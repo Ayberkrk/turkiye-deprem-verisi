@@ -48,6 +48,16 @@ def test_default_run_keeps_isc_picks_step(tmp_path: Path) -> None:
     assert "scripts/fetch_isc_picks.py" in calls
 
 
+def test_benchmarks_precede_validation_and_provenance_follows(tmp_path: Path) -> None:
+    result, calls = run_with_fake_python(tmp_path)
+
+    assert result.returncode == 0
+    benchmark_index = calls.index("scripts/build_benchmarks.py")
+    validation_index = calls.index("scripts/validate_dataset.py")
+    provenance_index = calls.index("scripts/build_provenance.py")
+    assert benchmark_index < validation_index < provenance_index
+
+
 def test_unknown_argument_fails_before_pipeline_starts(tmp_path: Path) -> None:
     result, calls = run_with_fake_python(tmp_path, "--bilinmeyen")
 
