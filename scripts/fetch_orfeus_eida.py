@@ -27,7 +27,15 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 # KOERI'nin kendi EIDA düğümüne doğrudan bağlan (https://eida.koeri.boun.edu.tr)
 # "ORFEUS" genel yönlendiricisi KO ağını her zaman bulamıyor; doğrudan KOERI
 # istemcisi kullanmak daha güvenilir.
-client = Client("KOERI")
+_client = None
+
+
+def get_client() -> Client:
+    """İstemci ilk kullanımda oluşturulur; import servis keşfi yapmaz."""
+    global _client
+    if _client is None:
+        _client = Client("KOERI")
+    return _client
 
 
 def _instrument_types(channel_codes: set) -> str:
@@ -68,7 +76,7 @@ def list_koeri_stations():
     üretiyoruz; `fetch_waveforms_bulk.py` bir olay anında hangi sensörün
     gerçekten aktif olduğunu bu tablodan kontrol ediyor.
     """
-    inventory = client.get_stations(network="KO", level="channel")
+    inventory = get_client().get_stations(network="KO", level="channel")
     station_rows = []
     channel_rows = []
     for net in inventory:
@@ -126,7 +134,7 @@ def fetch_one_waveform(network, station, event_time_utc, duration_sec=120):
     RAM'de tutmadan doğrudan miniSEED olarak kaydeder.
     """
     t0 = UTCDateTime(event_time_utc)
-    st = client.get_waveforms(
+    st = get_client().get_waveforms(
         network=network,
         station=station,
         location="*",

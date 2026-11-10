@@ -3,6 +3,12 @@
 Bu dosya, veri setinde ve pipeline'da yapılan önemli değişiklikleri
 sürüm sürüm listeler.
 
+## Yayınlanmadı
+
+- Dört FDSN script'inde istemci ilk kullanımda oluşturulup önbelleğe
+  alınıyor; modüller artık KOERI/ISC servis keşfi yapmadan çevrimdışı
+  import edilebiliyor (#34). Sunucu seçimi ve istek parametreleri değişmedi.
+
 ## v5.15
 
 - Yeni `scripts/gmpe.py` ve `notebooks/07_gmpe_comparison.py`:

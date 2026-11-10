@@ -73,7 +73,7 @@ WINDOW_BEFORE_SEC = 10
 WINDOW_AFTER_SEC = 200
 SLEEP_BETWEEN_REQUESTS = 0.4
 
-client = Client("KOERI")
+_client = None
 
 # Log şeması sabit tutulur ki dosya, eski/yeni sütun sayısı karışık
 # (bozuk) bir CSV'ye dönüşmesin. Yeni bir sütun eklenirse burada
@@ -84,6 +84,14 @@ EXPECTED_LOG_COLUMNS = [
     "event_source", "status", "file", "fetched_at",
 ]
 
+
+
+def get_client() -> Client:
+    """İstemci ilk kullanımda oluşturulur; import servis keşfi yapmaz."""
+    global _client
+    if _client is None:
+        _client = Client("KOERI")
+    return _client
 
 
 def sanitize_event_id(event_id: str) -> str:
@@ -201,6 +209,9 @@ def station_had_usable_channel_at(channel_activity, station: str, event_time) ->
 
 
 def main():
+    # Servis keşfi başarısızsa ilerleme/çıktı yazmadan önce dur; import ağsız kalır.
+    get_client()
+
     WAVEFORM_DIR.mkdir(parents=True, exist_ok=True)
     _migrate_log_if_needed()
 
@@ -284,7 +295,7 @@ def main():
                 fetched_at=datetime.now(timezone.utc).isoformat(),
             )
             try:
-                st = client.get_waveforms(
+                st = get_client().get_waveforms(
                     network="KO", station=sta["station"], location="*",
                     channel="HH*,HN*,EH*,BH*", starttime=t0, endtime=t1,
                 )

@@ -37,10 +37,18 @@ TIME_WINDOW_SEC = 120  # olay zamanının +-2 dakikası içinde ISC kaydı ara
 BBOX_MARGIN_DEG = 2.0  # olay konumunun etrafında +-2 derecelik kutu
 SLEEP_BETWEEN_REQUESTS = 1.0  # ISC sunucusuna karşı nazik davran
 
-client = Client("ISC")
+_client = None
 
 P_PHASES = {"P", "Pg", "Pn", "PG", "PN"}
 S_PHASES = {"S", "Sg", "Sn", "SG", "SN"}
+
+
+def get_client() -> Client:
+    """İstemci ilk kullanımda oluşturulur; import servis keşfi yapmaz."""
+    global _client
+    if _client is None:
+        _client = Client("ISC")
+    return _client
 
 
 def load_target_events():
@@ -88,6 +96,9 @@ def append_picks(rows):
 
 
 def main():
+    # Servis keşfi başarısızsa ilerleme/çıktı yazmadan önce dur; import ağsız kalır.
+    get_client()
+
     targets = load_target_events()
     done = load_progress()
     todo = targets[~targets["event_id"].isin(done)]
@@ -100,7 +111,7 @@ def main():
         t1 = UTCDateTime(ev["time_utc"]) + TIME_WINDOW_SEC
         rows = []
         try:
-            cat = client.get_events(
+            cat = get_client().get_events(
                 starttime=t0, endtime=t1,
                 minlatitude=ev["latitude"] - BBOX_MARGIN_DEG, maxlatitude=ev["latitude"] + BBOX_MARGIN_DEG,
                 minlongitude=ev["longitude"] - BBOX_MARGIN_DEG, maxlongitude=ev["longitude"] + BBOX_MARGIN_DEG,
