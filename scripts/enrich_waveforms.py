@@ -96,7 +96,7 @@ OUT_PATH = PROCESSED / "waveform_features.csv"
 RESPONSE_CACHE_DIR = PROCESSED / "response_cache"
 RESPONSE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-client = Client("KOERI")
+_client = None
 _response_cache = {}
 
 # Bu şema versiyonuyla üretilmemiş eski bir waveform_features.csv varsa
@@ -130,6 +130,14 @@ SA_COLUMN_SUFFIXES = ["0_1s", "0_2s", "0_5s", "1_0s", "2_0s"]
 WINDOW_LOOKBACK_SEC = 120
 DEFAULT_HIGHPASS_HZ = 0.05
 HIGHPASS_CORNERS = 4
+
+
+def get_client() -> Client:
+    """İstemci ilk kullanımda oluşturulur; import servis keşfi yapmaz."""
+    global _client
+    if _client is None:
+        _client = Client("KOERI")
+    return _client
 
 
 def highpass_corner_hz(magnitude) -> float:
@@ -352,7 +360,7 @@ def get_station_response(station: str):
 
         inv = read_inventory(str(cache_file))
     else:
-        inv = client.get_stations(network="KO", station=station, level="response")
+        inv = get_client().get_stations(network="KO", station=station, level="response")
         inv.write(str(cache_file), format="STATIONXML")
 
     _response_cache[station] = inv
@@ -632,6 +640,9 @@ def compute_features(mseed_path: Path, catalog=None):
 
 
 def main():
+    # Servis keşfi başarısızsa ilerleme/çıktı yazmadan önce dur; import ağsız kalır.
+    get_client()
+
     files = sorted(WAVEFORM_DIR.glob("*.mseed"))
     print(f"{len(files)} dalga formu dosyası bulundu.")
 
