@@ -5,6 +5,10 @@ sürüm sürüm listeler.
 
 ## Yayınlanmadı
 
+- Python paketine resmi benchmark bölmeleri için `load_benchmark` ve
+  istasyon tablosu için `load_stations` eklendi. Geçersiz görev/bölme/holdout
+  birleşimleri açıklayıcı hata verir; veri ve mevcut bölmeler değişmedi.
+
 - Dört FDSN script'inde istemci ilk kullanımda oluşturulup önbelleğe
   alınıyor; modüller artık KOERI/ISC servis keşfi yapmadan çevrimdışı
   import edilebiliyor (#34). Sunucu seçimi ve istek parametreleri değişmedi.
