@@ -196,6 +196,24 @@ df = load_catalog()  # artık cwd'den bağımsız çalışır
 Ya da tek bir çağrı için `data_dir=` parametresini kullanın:
 `load_catalog(data_dir="/baska/bir/yer/data/processed")`.
 
+Resmi benchmark bölmeleri ve istasyon tablosu da doğrudan yüklenebilir:
+
+```python
+from turkiye_deprem import load_benchmark, load_stations
+
+train = load_benchmark("ground_motion", "train")
+unseen_stations = load_benchmark("ground_motion", "test", holdout="station")
+stations = load_stations()
+# Repo dışında: indirilen benchmark kökünü açıkça belirtin.
+phase_test = load_benchmark("phase_picking", "test", benchmarks_dir="/veri/benchmarks")
+```
+
+`benchmarks_dir` verilmezse çalışma dizinine göre `benchmarks/` kullanılır;
+`TURKIYE_DEPREM_DATA_DIR` yalnızca işlenmiş veri yükleyicilerini (istasyonlar
+dahil) etkiler. `holdout="time"` yalnızca `ground_motion` için `train`/`test`
+bölmelerini sunar; geçersiz birleşimler `ValueError` üretir. Yükleyiciler
+veri indirmez ve mevcut bölmeleri değiştirmez.
+
 ## Kullanım örneği
 
 ```bash
