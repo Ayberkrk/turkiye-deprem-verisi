@@ -5,6 +5,12 @@ sürüm sürüm listeler.
 
 ## Yayınlanmadı
 
+- Python paketine yazar, anahtar kelimeler ve veri/arşiv/değişiklik geçmişi
+  bağlantıları eklendi (#44). Kod lisansı SPDX biçiminde MIT olarak
+  belirtiliyor; derleme için setuptools alt sınırı 77.0.3 oldu.
+  Veri katmanlarının ayrı lisansları değişmedi; dağıtımlarda
+  `LICENSE-DATA.md` korunuyor.
+
 - Dört FDSN script'inde istemci ilk kullanımda oluşturulup önbelleğe
   alınıyor; modüller artık KOERI/ISC servis keşfi yapmadan çevrimdışı
   import edilebiliyor (#34). Sunucu seçimi ve istek parametreleri değişmedi.
