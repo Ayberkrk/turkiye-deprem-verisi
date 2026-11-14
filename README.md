@@ -196,6 +196,24 @@ df = load_catalog()  # artık cwd'den bağımsız çalışır
 Ya da tek bir çağrı için `data_dir=` parametresini kullanın:
 `load_catalog(data_dir="/baska/bir/yer/data/processed")`.
 
+Resmi benchmark bölmeleri ve istasyon tablosu da doğrudan yüklenebilir:
+
+```python
+from turkiye_deprem import load_benchmark, load_stations
+
+train = load_benchmark("ground_motion", "train")
+unseen_stations = load_benchmark("ground_motion", "test", holdout="station")
+stations = load_stations()
+# Repo dışında: indirilen benchmark kökünü açıkça belirtin.
+phase_test = load_benchmark("phase_picking", "test", benchmarks_dir="/veri/benchmarks")
+```
+
+`benchmarks_dir` verilmezse çalışma dizinine göre `benchmarks/` kullanılır;
+`TURKIYE_DEPREM_DATA_DIR` yalnızca işlenmiş veri yükleyicilerini (istasyonlar
+dahil) etkiler. `holdout="time"` yalnızca `ground_motion` için `train`/`test`
+bölmelerini sunar; geçersiz birleşimler `ValueError` üretir. Yükleyiciler
+veri indirmez ve mevcut bölmeleri değiştirmez.
+
 ## Kullanım örneği
 
 ```bash
@@ -252,3 +270,13 @@ Yeni bir açık kaynak ekleyecekseniz lütfen önce `LICENSE-DATA.md`'ye
 lisans uyumluluğunu kontrol edin (özellikle share-alike/copyleft
 lisanslara dikkat). Kod değişikliği/test süreci için `CONTRIBUTING.md`'ye
 bakın.
+
+## Katkıda bulunanlar
+
+Katkıda bulunan herkese teşekkürler:
+
+<a href="https://github.com/Ayberkrk/turkiye-deprem-verisi/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Ayberkrk/turkiye-deprem-verisi" alt="Contributors" />
+</a>
+
+Yeni misiniz? [Başlangıç için uygun issue'ların](https://github.com/Ayberkrk/turkiye-deprem-verisi/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) her biri net bir "bitti" ölçütüyle yazıldı; sorularınızı [Discussions](https://github.com/Ayberkrk/turkiye-deprem-verisi/discussions) bölümünde sorabilirsiniz. Proje işinize yaradıysa bir yıldız, başkalarının da onu bulmasına yardımcı olur.
