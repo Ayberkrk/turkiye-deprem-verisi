@@ -9,6 +9,10 @@ sürüm sürüm listeler.
   istasyon tablosu için `load_stations` eklendi. Geçersiz görev/bölme/holdout
   birleşimleri açıklayıcı hata verir; veri ve mevcut bölmeler değişmedi.
 
+- `nehrp_class`, eksik, sonlu olmayan ve pozitif olmayan Vs30 değerleri
+  için `None` döndürüyor; geçersiz hız artık bir zemin sınıfı almıyor (#35).
+  Pozitif sonlu hızların sınıf eşikleri ve yayımlanan istasyon tablosu değişmedi.
+
 - Dört FDSN script'inde istemci ilk kullanımda oluşturulup önbelleğe
   alınıyor; modüller artık KOERI/ISC servis keşfi yapmadan çevrimdışı
   import edilebiliyor (#34). Sunucu seçimi ve istek parametreleri değişmedi.

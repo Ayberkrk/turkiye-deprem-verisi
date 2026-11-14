@@ -15,6 +15,7 @@ NEHRP zemin sınıfı eşikleri (Vs30, m/s):
 Kullanım:
     python scripts/fetch_vs30.py
 """
+import math
 import time
 from pathlib import Path
 
@@ -25,8 +26,13 @@ PROCESSED = Path("data/processed")
 VS30_URL = "https://earthquake.usgs.gov/arcgis/rest/services/eq/vs30_mosaic/MapServer/identify"
 
 
-def nehrp_class(vs30: float) -> str:
-    if vs30 is None:
+def nehrp_class(vs30: float | None) -> str | None:
+    """Eksik, sonlu olmayan veya pozitif olmayan hız için sınıf üretme (None).
+
+    NaN ve geçersiz hızlar fiziksel bir zemin sınıfını temsil etmez;
+    karşılaştırmaların sonundaki E sınıfına düşmeleri engellenir.
+    """
+    if vs30 is None or not math.isfinite(vs30) or vs30 <= 0:
         return None
     if vs30 > 1500:
         return "A"
