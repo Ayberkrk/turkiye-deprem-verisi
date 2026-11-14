@@ -9,7 +9,7 @@ adımla indirin:
     hf download Ayberkkr/turkiye-deprem-verisi --repo-type dataset --local-dir .
 
 Hangi `data/processed/` dizininin kullanılacağı şu öncelik sırasıyla
-belirlenir (her yükleyicide aynı):
+belirlenir (işlenmiş veri yükleyicilerinde aynı):
 
 1. Fonksiyona doğrudan `path=` verilirse, o dosya yolu aynen kullanılır.
 2. `data_dir=` verilirse, o dizin + standart dosya adı kullanılır.
@@ -78,3 +78,40 @@ def load_waveform_features(path: Path | str | None = None, data_dir: Path | str 
     """
     path = Path(path) if path is not None else _resolve_processed_dir(data_dir) / "waveform_features.csv"
     return pd.read_csv(_require(path))
+
+
+def load_stations(path: Path | str | None = None, data_dir: Path | str | None = None) -> pd.DataFrame:
+    """İstasyon tablosunu yükler; path/data_dir/ortam değişkeni önceliği
+    diğer işlenmiş veri yükleyicileriyle aynıdır.
+    """
+    path = Path(path) if path is not None else _resolve_processed_dir(data_dir) / "koeri_stations.csv"
+    return pd.read_csv(_require(path))
+
+
+def load_benchmark(
+    task: str, split: str, holdout: str | None = None, benchmarks_dir: Path | str | None = None
+) -> pd.DataFrame:
+    """Resmi benchmark bölmesini yükler; bölmeleri yeniden oluşturmaz.
+
+    benchmarks_dir verilirse doğrudan benchmark kökü olarak kullanılır;
+    aksi halde çalışma dizinine göre benchmarks/ kullanılır. Benchmark'lar
+    data/processed/ altında olmadığından TURKIYE_DEPREM_DATA_DIR burada
+    kullanılmaz; repo dışındaki notebook'larda benchmarks_dir belirtin.
+
+    Geçersiz görev/bölme/holdout birleşimleri dosya okunmadan ValueError
+    verir. Zaman holdout'unda val bölmesi yoktur.
+    """
+    tasks = ("ground_motion", "phase_picking", "early_warning")
+    if task not in tasks:
+        raise ValueError(f"Geçerli task seçenekleri: {', '.join(tasks)}")
+    holdouts = (None, "station", "time") if task == "ground_motion" else (None,)
+    if holdout not in holdouts:
+        raise ValueError(f"Geçerli holdout seçenekleri ({task}): {holdouts}")
+    splits = ("train", "test") if holdout == "time" else ("train", "val", "test")
+    if split not in splits:
+        raise ValueError(f"Geçerli split seçenekleri ({task}, holdout={holdout}): {', '.join(splits)}")
+    directory = Path(benchmarks_dir) if benchmarks_dir is not None else Path("benchmarks")
+    directory /= task
+    if holdout is not None:
+        directory /= f"holdout_by_{holdout}"
+    return pd.read_csv(_require(directory / f"{split}.csv"))
