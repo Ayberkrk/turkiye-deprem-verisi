@@ -5,6 +5,12 @@ sürüm sürüm listeler.
 
 ## Yayınlanmadı
 
+- Python paketine yazar, anahtar kelimeler ve veri/arşiv/değişiklik geçmişi
+  bağlantıları eklendi (#44). Kod lisansı SPDX biçiminde MIT olarak
+  belirtiliyor; derleme için setuptools alt sınırı 77.0.3 oldu.
+  Veri katmanlarının ayrı lisansları değişmedi; dağıtımlarda
+  `LICENSE-DATA.md` korunuyor.
+
 - Python paketine resmi benchmark bölmeleri için `load_benchmark` ve
   istasyon tablosu için `load_stations` eklendi. Geçersiz görev/bölme/holdout
   birleşimleri açıklayıcı hata verir; veri ve mevcut bölmeler değişmedi.

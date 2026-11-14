@@ -11,8 +11,12 @@ istiyorsanız aşağıdaki kontrol listesini takip edin.
 
    ```bash
    pip install -r requirements-dev.txt
+   pip install -e .
    python -m pytest tests/ -v
    ```
+
+   Düzenlenebilir kurulum, kaynak kodla birlikte testlerin kullandığı paket
+   metaverisini de sağlar. Bu adım CI kurulumu ile aynıdır.
 
 3. Ruff lint kontrolünü çalıştırın:
 

@@ -3,6 +3,8 @@ name = "turkiye-deprem-verisi"
 version = "5.15.0"
 description = "Türkiye'ye özel deprem kataloğu ve dalga formu veri seti için yükleme yardımcıları"
 readme = "README.md"
+authors = [{ name = "Ayberk Korkmaz" }]
+keywords = ["earthquake", "seismology", "strong-motion", "turkey", "dataset", "machine-learning"]
 requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -11,7 +13,8 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE", "LICENSE-DATA.md"]
 dependencies = [
     "pandas>=2.0",
     "pyarrow>=14.0",
@@ -19,9 +22,12 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/Ayberkrk/turkiye-deprem-verisi"
+Dataset = "https://huggingface.co/datasets/Ayberkkr/turkiye-deprem-verisi"
+Archive = "https://doi.org/10.5281/zenodo.22754705"
+Changelog = "https://github.com/Ayberkrk/turkiye-deprem-verisi/blob/main/CHANGELOG.md"
 
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
